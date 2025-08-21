@@ -23,23 +23,31 @@ export default function LoginPage() {
     setError('')
 
     try {
+      console.log('Attempting to create Supabase client...')
       const supabase = getSupabaseBrowser()
+      console.log('Supabase client created, attempting authentication...')
+      
       if (isSignUp) {
+        console.log('Signing up with email:', email)
         const { error } = await supabase.auth.signUp({
           email,
           password,
         })
         if (error) throw error
+        console.log('Sign up successful')
         alert('Check your email for the confirmation link!')
       } else {
+        console.log('Signing in with email:', email)
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
         if (error) throw error
+        console.log('Sign in successful, redirecting to dashboard')
         router.push('/dashboard')
       }
     } catch (error: any) {
+      console.error('Authentication error:', error)
       setError(error.message)
     } finally {
       setLoading(false)
