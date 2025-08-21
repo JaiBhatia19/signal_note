@@ -90,4 +90,7 @@ jspm_packages/
 .dynamodb/
 
 # TernJS port file
-.tern-port .env.production
+.tern-port
+
+# Production environment variables
+.env.production
