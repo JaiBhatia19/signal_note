@@ -17,8 +17,13 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const router = useRouter()
 
+  // Debug: Check if component is rendering
+  console.log('LoginPage component rendered')
+  console.log('Environment check - NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('Form submitted!') // Debug: Check if form submission is working
     setLoading(true)
     setError('')
 
@@ -66,12 +71,15 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" onChange={() => console.log('Form changed')}>
           <Input
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              console.log('Email changed:', e.target.value) // Debug: Check if input changes are working
+              setEmail(e.target.value)
+            }}
             required
           />
           
@@ -79,7 +87,10 @@ export default function LoginPage() {
             label="Password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              console.log('Password changed:', e.target.value) // Debug: Check if input changes are working
+              setPassword(e.target.value)
+            }}
             required
           />
 
@@ -93,6 +104,7 @@ export default function LoginPage() {
             type="submit"
             className="w-full"
             disabled={loading}
+            onClick={() => console.log('Button clicked!')} // Debug: Check if button is clickable
           >
             {loading ? 'Loading...' : (isSignUp ? 'Create Account' : 'Sign In')}
           </Button>
