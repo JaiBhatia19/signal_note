@@ -9,6 +9,9 @@ import { getSupabaseBrowser } from '@/lib/supabase-browser'
 export default function AddFeedbackForm() {
   const [content, setContent] = useState('')
   const [source, setSource] = useState('Manual')
+  const [userSegment, setUserSegment] = useState('')
+  const [productArea, setProductArea] = useState('')
+  const [priority, setPriority] = useState('medium')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -25,7 +28,13 @@ export default function AddFeedbackForm() {
       const response = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: content.trim(), source })
+        body: JSON.stringify({ 
+          content: content.trim(), 
+          source,
+          userSegment: userSegment.trim() || null,
+          productArea: productArea.trim() || null,
+          priority
+        })
       })
 
       if (!response.ok) {
@@ -35,6 +44,9 @@ export default function AddFeedbackForm() {
 
       setSuccess(true)
       setContent('')
+      setUserSegment('')
+      setProductArea('')
+      setPriority('medium')
       
       // Show success message for 2 seconds, then redirect
       setTimeout(() => {
@@ -48,38 +60,116 @@ export default function AddFeedbackForm() {
   }
 
   const sampleFeedback = [
-    "The app crashes when I try to upload large files. This happens every time with files over 10MB.",
-    "I love the new dashboard design! The charts are much clearer and the data visualization is really helpful.",
-    "The search function is too slow. It takes 5-10 seconds to return results, which makes it unusable for quick lookups.",
-    "The mobile app needs better offline support. When I'm on the train without internet, I can't access my saved documents.",
-    "The pricing is too expensive for small teams. We're a startup with 5 people and can't afford $50/user/month."
+    {
+      content: "The app crashes when I try to upload large files. This happens every time with files over 10MB.",
+      userSegment: "Power Users",
+      productArea: "File Management",
+      priority: "high"
+    },
+    {
+      content: "I love the new dashboard design! The charts are much clearer and the data visualization is really helpful.",
+      userSegment: "Regular Users",
+      productArea: "Dashboard",
+      priority: "low"
+    },
+    {
+      content: "The search function is too slow. It takes 5-10 seconds to return results, which makes it unusable for quick lookups.",
+      userSegment: "Enterprise Users",
+      productArea: "Search",
+      priority: "high"
+    },
+    {
+      content: "The mobile app needs better offline support. When I'm on the train without internet, I can't access my saved documents.",
+      userSegment: "Mobile Users",
+      productArea: "Mobile App",
+      priority: "medium"
+    },
+    {
+      content: "The pricing is too expensive for small teams. We're a startup with 5 people and can't afford $50/user/month.",
+      userSegment: "Startup Users",
+      productArea: "Pricing",
+      priority: "medium"
+    }
   ]
 
-  const insertSampleFeedback = (sample: string) => {
-    setContent(sample)
+  const insertSampleFeedback = (sample: any) => {
+    setContent(sample.content)
+    setUserSegment(sample.userSegment)
+    setProductArea(sample.productArea)
+    setPriority(sample.priority)
     setSource('Manual')
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Source
-        </label>
-        <select
-          value={source}
-          onChange={(e) => setSource(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="Manual">Manual Entry</option>
-          <option value="Zoom">Zoom Transcript</option>
-          <option value="Slack">Slack</option>
-          <option value="Email">Email</option>
-          <option value="Survey">Survey</option>
-          <option value="Support">Support Ticket</option>
-          <option value="User Interview">User Interview</option>
-          <option value="App Store Review">App Store Review</option>
-        </select>
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Source
+          </label>
+          <select
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="Manual">Manual Entry</option>
+            <option value="Zoom">Zoom Transcript</option>
+            <option value="Slack">Slack</option>
+            <option value="Email">Email</option>
+            <option value="Survey">Survey</option>
+            <option value="Support">Support Ticket</option>
+            <option value="User Interview">User Interview</option>
+            <option value="App Store Review">App Store Review</option>
+            <option value="Intercom">Intercom</option>
+            <option value="Zendesk">Zendesk</option>
+            <option value="Hotjar">Hotjar</option>
+            <option value="FullStory">FullStory</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Priority
+          </label>
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            User Segment (Optional)
+          </label>
+          <input
+            type="text"
+            value={userSegment}
+            onChange={(e) => setUserSegment(e.target.value)}
+            placeholder="e.g., Enterprise, Startup, Power Users"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Product Area (Optional)
+          </label>
+          <input
+            type="text"
+            value={productArea}
+            onChange={(e) => setProductArea(e.target.value)}
+            placeholder="e.g., Dashboard, Mobile App, API"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
       </div>
 
       <div>
@@ -110,7 +200,9 @@ export default function AddFeedbackForm() {
               onClick={() => insertSampleFeedback(sample)}
               className="text-left p-2 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded border border-gray-200 hover:border-gray-300 transition-colors"
             >
-              {sample.length > 60 ? `${sample.substring(0, 60)}...` : sample}
+              <div className="font-medium">{sample.userSegment} - {sample.productArea}</div>
+              <div className="text-gray-500">{sample.content.length > 50 ? `${sample.content.substring(0, 50)}...` : sample.content}</div>
+              <div className="text-xs text-gray-400 mt-1">Priority: {sample.priority}</div>
             </button>
           ))}
         </div>
@@ -132,7 +224,7 @@ export default function AddFeedbackForm() {
 
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-500">
-          This feedback will be analyzed and stored for future insights.
+          This feedback will be analyzed with AI to extract insights, sentiment, and actionable recommendations.
         </div>
         <Button
           type="submit"

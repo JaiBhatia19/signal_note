@@ -97,6 +97,11 @@ export default function Nav() {
                 <Link href="/insights" className="text-gray-600 hover:text-gray-900">
                   Insights
                 </Link>
+                {isPro && (
+                  <Link href="/analytics" className="text-gray-600 hover:text-gray-900">
+                    Analytics
+                  </Link>
+                )}
                 <Link href="/settings" className="text-gray-600 hover:text-gray-900">
                   Settings
                 </Link>

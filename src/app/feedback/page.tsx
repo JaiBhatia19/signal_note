@@ -1,7 +1,8 @@
+import { getSupabaseServer } from '@/lib/supabase-server'
 import Card from '@/components/Card'
 import Badge from '@/components/Badge'
-import { getSupabaseServer } from '@/lib/supabase-server'
 import Link from 'next/link'
+import FeedbackList from './FeedbackList'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,99 +41,59 @@ export default async function FeedbackPage() {
     )
   }
 
-  // Get all feedback for this user
-  const { data: feedback } = await supabase
+  // Get total feedback count
+  const { count: totalFeedback } = await supabase
     .from('feedback')
-    .select('*')
+    .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
 
-  // Get feedback count by source
-  const sourceCounts = feedback?.reduce((acc: any, item: any) => {
-    acc[item.source] = (acc[item.source] || 0) + 1
-    return acc
-  }, {}) || {}
+  // Get unique sources, segments, and areas for filters
+  const { data: sources } = await supabase
+    .from('feedback')
+    .select('source')
+    .eq('user_id', user.id)
+    .not('source', 'is', null)
+
+  const { data: segments } = await supabase
+    .from('feedback')
+    .select('user_segment')
+    .eq('user_id', user.id)
+    .not('user_segment', 'is', null)
+
+  const { data: areas } = await supabase
+    .from('feedback')
+    .select('product_area')
+    .eq('user_id', user.id)
+    .not('product_area', 'is', null)
+
+  const uniqueSources = Array.from(new Set(sources?.map(s => s.source) || []))
+  const uniqueSegments = Array.from(new Set(segments?.map(s => s.user_segment) || []))
+  const uniqueAreas = Array.from(new Set(areas?.map(a => a.product_area) || []))
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">All Feedback</h1>
-          <p className="text-gray-600 mt-2">View and manage all your customer feedback</p>
+    <div className="max-w-6xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">All Feedback</h1>
+        <p className="text-gray-600 mt-2">
+          View and manage all your customer feedback with advanced filtering and analysis.
+        </p>
+        <div className="flex items-center space-x-4 mt-4">
+          <span className="text-sm text-gray-500">
+            Total: {totalFeedback || 0} feedback items
+          </span>
+          <Link href="/add-feedback">
+            <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm">
+              + Add New Feedback
+            </button>
+          </Link>
         </div>
-        <Link href="/add-feedback">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-            + Add Feedback
-          </button>
-        </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid md:grid-cols-4 gap-4">
-        <Card>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{feedback?.length || 0}</div>
-            <div className="text-gray-600 text-sm">Total Items</div>
-          </div>
-        </Card>
-        {Object.entries(sourceCounts).map(([source, count]) => (
-          <Card key={source}>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{count as number}</div>
-              <div className="text-gray-600 text-sm">{source}</div>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Feedback List */}
-      <Card>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Feedback Items</h2>
-          <div className="text-sm text-gray-500">
-            {feedback?.length || 0} items
-          </div>
-        </div>
-        
-        <div className="space-y-3">
-          {feedback && feedback.length > 0 ? (
-            feedback.map((item: any) => (
-              <div key={item.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-gray-700 leading-relaxed mb-3">
-                      {item.content}
-                    </p>
-                    <div className="flex items-center space-x-3">
-                      <Badge variant="default" className="text-xs">
-                        {item.source}
-                      </Badge>
-                      <span className="text-xs text-gray-500">
-                        {new Date(item.created_at).toLocaleDateString()} at {new Date(item.created_at).toLocaleTimeString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-gray-400 mb-4">
-                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No feedback yet</h3>
-              <p className="text-gray-500 mb-4">Start collecting customer insights to see them here.</p>
-              <Link href="/add-feedback">
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                  Add Your First Feedback
-                </button>
-              </Link>
-            </div>
-          )}
-        </div>
-      </Card>
+      <FeedbackList 
+        uniqueSources={uniqueSources}
+        uniqueSegments={uniqueSegments}
+        uniqueAreas={uniqueAreas}
+      />
     </div>
   )
 } 
