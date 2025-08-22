@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export const dynamic = 'force-dynamic'
 import { useRouter } from 'next/navigation'
@@ -15,41 +15,48 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
   const router = useRouter()
-
-  // Debug: Check if component is rendering
-  console.log('LoginPage component rendered')
-  console.log('Environment check - NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Form submitted!') // Debug: Check if form submission is working
     setLoading(true)
     setError('')
+    setMessage('')
 
     try {
-      console.log('Attempting to create Supabase client...')
       const supabase = getSupabaseBrowser()
-      console.log('Supabase client created, attempting authentication...')
       
       if (isSignUp) {
-        console.log('Signing up with email:', email)
         const { error } = await supabase.auth.signUp({
           email,
           password,
         })
         if (error) throw error
-        console.log('Sign up successful')
-        alert('Check your email for the confirmation link!')
+        
+        setMessage('Check your email for the confirmation link! You can also sign in directly.')
+        setIsSignUp(false)
       } else {
-        console.log('Signing in with email:', email)
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
         if (error) throw error
-        console.log('Sign in successful, redirecting to dashboard')
-        router.push('/dashboard')
+        
+        // Check if user has completed onboarding
+        if (data.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('onboarding_completed')
+            .eq('id', data.user.id)
+            .single()
+          
+          if (profile?.onboarding_completed) {
+            router.push('/dashboard')
+          } else {
+            router.push('/onboarding')
+          }
+        }
       }
     } catch (error: any) {
       console.error('Authentication error:', error)
@@ -71,15 +78,12 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4" onChange={() => console.log('Form changed')}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => {
-              console.log('Email changed:', e.target.value) // Debug: Check if input changes are working
-              setEmail(e.target.value)
-            }}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
           
@@ -87,16 +91,21 @@ export default function LoginPage() {
             label="Password"
             type="password"
             value={password}
-            onChange={(e) => {
-              console.log('Password changed:', e.target.value) // Debug: Check if input changes are working
-              setPassword(e.target.value)
-            }}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
+            <div className="text-red-600 text-sm bg-red-50 p-3 rounded border border-red-200">
+              <div className="font-medium">Error:</div>
               {error}
+            </div>
+          )}
+
+          {message && (
+            <div className="text-green-600 text-sm bg-green-50 p-3 rounded border border-green-200">
+              <div className="font-medium">Success!</div>
+              {message}
             </div>
           )}
 
@@ -104,7 +113,6 @@ export default function LoginPage() {
             type="submit"
             className="w-full"
             disabled={loading}
-            onClick={() => console.log('Button clicked!')} // Debug: Check if button is clickable
           >
             {loading ? 'Loading...' : (isSignUp ? 'Create Account' : 'Sign In')}
           </Button>
@@ -113,11 +121,29 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           <button
             type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => {
+              setIsSignUp(!isSignUp)
+              setError('')
+              setMessage('')
+            }}
             className="text-blue-600 hover:text-blue-500 text-sm"
           >
             {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
           </button>
+        </div>
+
+        {/* Demo Account Info */}
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <h3 className="text-sm font-medium text-blue-900 mb-2">🚀 Try SignalNote</h3>
+          <p className="text-xs text-blue-700 mb-2">
+            Create an account to experience the full power of AI-powered customer feedback analysis.
+          </p>
+          <div className="text-xs text-blue-600">
+            • AI-powered sentiment analysis<br/>
+            • Smart feedback clustering<br/>
+            • Feature request generation<br/>
+            • Professional insights dashboard
+          </div>
         </div>
       </Card>
     </div>
