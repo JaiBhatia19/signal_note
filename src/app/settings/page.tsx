@@ -14,6 +14,8 @@ interface Profile {
   role: string;
   ref_code: string;
   created_at: string;
+  stripe_customer_id?: string;
+  stripe_subscription_id?: string;
 }
 
 export default function SettingsPage() {
@@ -254,9 +256,44 @@ export default function SettingsPage() {
                 {profile.role === 'pro' && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <h4 className="font-medium text-green-900 mb-2">Pro Features Active</h4>
-                    <p className="text-sm text-green-800">
+                    <p className="text-sm text-green-800 mb-4">
                       You have access to all Pro features including AI analysis and clustering.
                     </p>
+                    
+                    {/* Pro Features List */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center text-sm text-green-800">
+                        <svg className="w-4 h-4 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Unlimited AI-powered feedback analysis
+                      </div>
+                      <div className="flex items-center text-sm text-green-800">
+                        <svg className="w-4 h-4 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Advanced semantic search with pgvector
+                      </div>
+                      <div className="flex items-center text-sm text-green-800">
+                        <svg className="w-4 h-4 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Intelligent feedback clustering & insights
+                      </div>
+                      <div className="flex items-center text-sm text-green-800">
+                        <svg className="w-4 h-4 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Priority customer support
+                      </div>
+                    </div>
+
+                    {/* Subscription Management */}
+                    {profile.stripe_subscription_id && (
+                      <div className="text-xs text-green-700 bg-green-100 p-2 rounded">
+                        <strong>Subscription ID:</strong> {profile.stripe_subscription_id}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

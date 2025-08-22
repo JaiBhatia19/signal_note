@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-
 export const dynamic = 'force-dynamic'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import Button from '@/components/Button'
@@ -13,6 +12,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
+  const [isMagicLink, setIsMagicLink] = useState(false)
+  const [isPasswordReset, setIsPasswordReset] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -27,14 +28,38 @@ export default function LoginPage() {
     try {
       const supabase = getSupabaseBrowser()
       
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
+      if (isPasswordReset) {
+        // Send password reset email
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/callback?next=/settings`
         })
         if (error) throw error
         
-        setMessage('Check your email for the confirmation link! You can also sign in directly.')
+        setMessage('Password reset email sent! Check your inbox and click the link to reset your password.')
+        setIsPasswordReset(false)
+      } else if (isMagicLink) {
+        // Send magic link
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`
+          }
+        })
+        if (error) throw error
+        
+        setMessage('Magic link sent! Check your email and click the link to sign in instantly.')
+        setIsMagicLink(false)
+      } else if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`
+          }
+        })
+        if (error) throw error
+        
+        setMessage('Account created! Check your email for the confirmation link. You can also sign in directly.')
         setIsSignUp(false)
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -66,15 +91,42 @@ export default function LoginPage() {
     }
   }
 
+  const handleMagicLink = () => {
+    setIsMagicLink(true)
+    setIsSignUp(false)
+    setIsPasswordReset(false)
+    setError('')
+    setMessage('')
+  }
+
+  const handlePasswordAuth = () => {
+    setIsMagicLink(false)
+    setIsPasswordReset(false)
+    setError('')
+    setMessage('')
+  }
+
+  const handlePasswordReset = () => {
+    setIsPasswordReset(true)
+    setIsMagicLink(false)
+    setIsSignUp(false)
+    setError('')
+    setMessage('')
+  }
+
   return (
     <div className="max-w-md mx-auto">
       <Card>
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
-            {isSignUp ? 'Create Account' : 'Sign In'}
+            {isPasswordReset ? 'Reset Password' :
+             isMagicLink ? 'Sign In with Magic Link' : 
+             isSignUp ? 'Create Account' : 'Sign In'}
           </h1>
           <p className="text-gray-600 mt-2">
-            {isSignUp ? 'Get started with SignalNote' : 'Welcome back to SignalNote'}
+            {isPasswordReset ? 'Enter your email to receive a password reset link' :
+             isMagicLink ? 'Get a secure link sent to your email' :
+             isSignUp ? 'Get started with SignalNote' : 'Welcome back to SignalNote'}
           </p>
         </div>
 
@@ -87,13 +139,15 @@ export default function LoginPage() {
             required
           />
           
-          <Input
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          {!isMagicLink && !isPasswordReset && (
+            <Input
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          )}
 
           {error && (
             <div className="text-red-600 text-sm bg-red-50 p-3 rounded border border-red-200">
@@ -104,7 +158,7 @@ export default function LoginPage() {
 
           {message && (
             <div className="text-green-600 text-sm bg-green-50 p-3 rounded border border-green-200">
-              <div className="font-medium">Success!</div>
+              <div className="font-medium">Success:</div>
               {message}
             </div>
           )}
@@ -114,35 +168,82 @@ export default function LoginPage() {
             className="w-full"
             disabled={loading}
           >
-            {loading ? 'Loading...' : (isSignUp ? 'Create Account' : 'Sign In')}
+            {loading ? 'Processing...' : 
+             isPasswordReset ? 'Send Reset Link' :
+             isMagicLink ? 'Send Magic Link' :
+             isSignUp ? 'Create Account' : 'Sign In'}
           </Button>
         </form>
 
-        <div className="mt-6 text-center">
-          <button
-            type="button"
-            onClick={() => {
-              setIsSignUp(!isSignUp)
-              setError('')
-              setMessage('')
-            }}
-            className="text-blue-600 hover:text-blue-500 text-sm"
-          >
-            {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-          </button>
+        <div className="mt-6 space-y-3">
+          {!isMagicLink && !isPasswordReset && (
+            <>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleMagicLink}
+              >
+                Sign in with Magic Link
+              </Button>
+              
+              <button
+                type="button"
+                onClick={handlePasswordReset}
+                className="w-full text-sm text-blue-600 hover:text-blue-500 text-center"
+              >
+                Forgot your password?
+              </button>
+            </>
+          )}
+
+          {isMagicLink && (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handlePasswordAuth}
+            >
+              Sign in with Password
+            </Button>
+          )}
+
+          {isPasswordReset && (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handlePasswordAuth}
+            >
+              Back to Sign In
+            </Button>
+          )}
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp)
+                setIsMagicLink(false)
+                setIsPasswordReset(false)
+                setError('')
+                setMessage('')
+              }}
+              className="text-sm text-blue-600 hover:text-blue-500"
+            >
+              {isSignUp ? 'Already have an account? Sign in' : 
+               isMagicLink ? 'Need an account? Sign up' : 
+               isPasswordReset ? 'Remember your password? Sign in' :
+               "Don't have an account? Sign up"}
+            </button>
+          </div>
         </div>
 
-        {/* Demo Account Info */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <h3 className="text-sm font-medium text-blue-900 mb-2">🚀 Try SignalNote</h3>
-          <p className="text-xs text-blue-700 mb-2">
-            Create an account to experience the full power of AI-powered customer feedback analysis.
-          </p>
-          <div className="text-xs text-blue-600">
-            • AI-powered sentiment analysis<br/>
-            • Smart feedback clustering<br/>
-            • Feature request generation<br/>
-            • Professional insights dashboard
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="text-center text-sm text-gray-600">
+            <p>By continuing, you agree to our</p>
+            <div className="mt-1 space-x-2">
+              <a href="/terms" className="text-blue-600 hover:text-blue-500">Terms of Service</a>
+              <span>and</span>
+              <a href="/privacy" className="text-blue-600 hover:text-blue-500">Privacy Policy</a>
+            </div>
           </div>
         </div>
       </Card>
