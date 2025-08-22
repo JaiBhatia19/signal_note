@@ -9,14 +9,14 @@ test.describe('Pricing', () => {
     await expect(page.getByText(/Choose the plan that fits your needs/i)).toBeVisible();
   });
 
-  test('should display free plan', async ({ page }) => {
+  test('should display basic plan', async ({ page }) => {
     await page.goto('/pricing');
     
-    // Check free plan section
-    await expect(page.getByRole('heading', { name: /Free/i })).toBeVisible();
+    // Check basic plan section
+    await expect(page.getByRole('heading', { name: /Basic/i })).toBeVisible();
     await expect(page.getByText(/\$0\/month/i)).toBeVisible();
     
-    // Check free plan features
+    // Check basic plan features
     await expect(page.getByText(/Up to 100 feedback items/i)).toBeVisible();
     await expect(page.getByText(/Basic AI analysis/i)).toBeVisible();
     await expect(page.getByText(/5 clusters/i)).toBeVisible();
@@ -42,15 +42,15 @@ test.describe('Pricing', () => {
     await page.goto('/pricing');
     
     // Check CTA buttons
-    await expect(page.getByRole('button', { name: /Get Started Free/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Get Started/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Start Pro Trial/i })).toBeVisible();
   });
 
-  test('should navigate to signup from free plan', async ({ page }) => {
+  test('should navigate to signup from basic plan', async ({ page }) => {
     await page.goto('/pricing');
     
-    // Click free plan CTA
-    await page.getByRole('button', { name: /Get Started Free/i }).click();
+    // Click basic plan CTA
+    await page.getByRole('button', { name: /Get Started/i }).click();
     
     // Should redirect to signup or login
     await expect(page).toHaveURL(/\/login|\/signup/);

@@ -101,7 +101,7 @@ export default function SearchPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Search Your Feedback
+            Search Feedback
           </h1>
           <p className="text-xl text-gray-600">
             Find relevant insights using natural language queries and advanced filters.
@@ -117,7 +117,7 @@ export default function SearchPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Search for feedback about user experience, bugs, feature requests..."
+                placeholder="Search your feedback"
                 className="w-full text-lg"
               />
             </div>
@@ -207,7 +207,7 @@ export default function SearchPage() {
 
         {/* Search Results */}
         {results.length > 0 && (
-          <div className="mb-8">
+          <div className="search-results mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900">
                 Search Results ({results.length})
@@ -280,13 +280,13 @@ export default function SearchPage() {
 
         {/* No Results */}
         {query && results.length === 0 && !isSearching && (
-          <Card className="text-center py-12">
+          <Card className="no-results text-center py-12">
             <div className="text-gray-400 mb-4">
               <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No results found</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No feedback found</h3>
             <p className="text-gray-600 mb-6">
               Try adjusting your search terms or filters to find what you're looking for.
             </p>
@@ -310,11 +310,11 @@ export default function SearchPage() {
             <div className="grid md:grid-cols-3 gap-6 text-sm text-blue-800">
               <div>
                 <h4 className="font-medium mb-2">Natural Language</h4>
-                <p>Use phrases like "user interface issues" or "mobile app problems"</p>
+                <p>Try searching for specific features, bugs, or user segments</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Specific Terms</h4>
-                <p>Search for exact features, bugs, or user segments</p>
+                <p>Use phrases like "user interface issues" or "mobile app problems"</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Combine Filters</h4>

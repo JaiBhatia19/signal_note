@@ -28,6 +28,17 @@ export default async function DashboardPage() {
     .eq('owner_id', user.id)
     .order('created_at', { ascending: false })
 
+  // Type the feedback data
+  const typedFeedback = feedback as Array<{
+    id: string;
+    text: string;
+    source: string | null;
+    product_area: string | null;
+    sentiment: number | null;
+    urgency: number | null;
+    created_at: string;
+  }> | null
+
   // Get clusters
   const { data: clusters } = await supabase
     .from('clusters')
@@ -36,16 +47,16 @@ export default async function DashboardPage() {
     .order('size', { ascending: false })
 
   // Calculate insights
-  const totalFeedback = feedback?.length || 0
-  const avgSentiment = feedback?.length 
-    ? feedback.reduce((sum, f) => sum + (f.sentiment || 0.5), 0) / feedback.length
+  const totalFeedback = typedFeedback?.length || 0
+  const avgSentiment = typedFeedback?.length 
+    ? typedFeedback.reduce((sum, f) => sum + (f.sentiment || 0.5), 0) / typedFeedback.length
     : 0.5
-  const avgUrgency = feedback?.length
-    ? feedback.reduce((sum, f) => sum + (f.urgency || 0.5), 0) / feedback.length
+  const avgUrgency = typedFeedback?.length
+    ? typedFeedback.reduce((sum, f) => sum + (f.urgency || 0.5), 0) / typedFeedback.length
     : 0.5
 
   // Get recent feedback
-  const recentFeedback = feedback?.slice(0, 5) || []
+  const recentFeedback = typedFeedback?.slice(0, 5) || []
   const topClusters = clusters?.slice(0, 3) || []
 
   const getSentimentColor = (score: number) => {
@@ -259,9 +270,9 @@ export default async function DashboardPage() {
       {totalFeedback < 5 && (
         <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-green-900 mb-2">🎯 Getting Started Tips</h3>
+            <h3 className="text-lg font-semibold text-green-900 mb-2">🎯 Getting Started</h3>
             <p className="text-green-700 mb-4">
-              Add more feedback to unlock powerful insights and AI-powered analysis.
+              Add your first piece of feedback to unlock powerful insights and AI-powered analysis.
             </p>
             <div className="grid md:grid-cols-3 gap-4 text-sm">
               <div className="flex items-center justify-center">
@@ -280,6 +291,70 @@ export default async function DashboardPage() {
           </div>
         </Card>
       )}
+
+      {/* Feedback by Source Breakdown */}
+      <Card>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">📊 Feedback by Source</h2>
+        <div className="source-chart">
+          {typedFeedback && typedFeedback.length > 0 ? (
+            <div className="space-y-3">
+              {Object.entries(
+                typedFeedback.reduce((acc, item) => {
+                  const source = item.source || 'Unknown';
+                  acc[source] = (acc[source] || 0) + 1;
+                  return acc;
+                }, {} as Record<string, number>)
+              ).map(([source, count]) => (
+                <div key={source} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="font-medium text-gray-700">{source}</span>
+                  <Badge variant="default">{count}</Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-breakdown text-center py-8">
+              <div className="text-gray-400 mb-2">
+                <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+              <p className="text-gray-500">No feedback data to analyze yet</p>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Feedback by Product Area Breakdown */}
+      <Card>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">🎯 Feedback by Product Area</h2>
+        <div className="area-chart">
+          {typedFeedback && typedFeedback.length > 0 ? (
+            <div className="space-y-3">
+              {Object.entries(
+                typedFeedback.reduce((acc, item) => {
+                  const area = item.product_area || 'General';
+                  acc[area] = (acc[area] || 0) + 1;
+                  return acc;
+                }, {} as Record<string, number>)
+              ).map(([area, count]) => (
+                <div key={area} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="font-medium text-gray-700">{area}</span>
+                  <Badge variant="default">{count}</Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-breakdown text-center py-8">
+              <div className="text-gray-400 mb-2">
+                <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+              <p className="text-gray-500">No product area data to analyze yet</p>
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   )
 } 

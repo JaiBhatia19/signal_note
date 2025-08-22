@@ -196,7 +196,7 @@ export default function HomePage() {
               </ul>
               <Link href="/login">
                 <Button variant="outline" className="w-full">
-                  Get Started Free
+                  Sign Up Free
                 </Button>
               </Link>
             </Card>

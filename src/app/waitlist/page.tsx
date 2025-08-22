@@ -12,14 +12,33 @@ export default function WaitlistPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [validationError, setValidationError] = useState('');
   
   const searchParams = useSearchParams();
   const refCode = searchParams.get('ref');
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setValidationError('');
     setError('');
+
+    // Client-side validation
+    if (!email.trim()) {
+      setValidationError('Please enter a valid email address');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setValidationError('Please enter a valid email address');
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       const response = await fetch('/api/waitlist', {
@@ -91,7 +110,6 @@ export default function WaitlistPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              required
               className="w-full"
             />
           </div>
@@ -99,8 +117,14 @@ export default function WaitlistPage() {
           {refCode && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
-                Referred by: <span className="font-medium">{refCode}</span>
+                Referral Code: <span className="font-medium">{refCode}</span>
               </p>
+            </div>
+          )}
+
+          {validationError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-800">{validationError}</p>
             </div>
           )}
 
