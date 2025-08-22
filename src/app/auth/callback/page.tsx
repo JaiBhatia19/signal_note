@@ -1,22 +1,22 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [isProcessing, setIsProcessing] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const processAuth = async () => {
       try {
-        const type = searchParams.get('type')
-        const hash = searchParams.get('hash')
-
-        if (type === 'magiclink' && hash) {
+        // Supabase magic links come with tokens in the URL hash fragment
+        // Format: #access_token=...&refresh_token=...
+        const hash = window.location.hash
+        
+        if (hash && hash.includes('access_token')) {
           // This is a magic link callback
           const supabase = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -71,7 +71,7 @@ export default function AuthCallbackPage() {
     }
 
     processAuth()
-  }, [searchParams, router])
+  }, [router])
 
   if (isProcessing) {
     return (
