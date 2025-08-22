@@ -21,7 +21,7 @@ export async function PUT(
       .from('feedback')
       .select('id')
       .eq('id', params.id)
-      .eq('user_id', user.id)
+      .eq('owner_id', user.id)
       .single()
 
     if (!existing) {
@@ -37,7 +37,7 @@ export async function PUT(
     const { error } = await supabase
       .from('feedback')
       .update({ 
-        content, 
+        text: content, 
         source, 
         ...(embedding && { embedding }),
         updated_at: new Date().toISOString()
@@ -71,7 +71,7 @@ export async function DELETE(
       .from('feedback')
       .select('id')
       .eq('id', params.id)
-      .eq('user_id', user.id)
+      .eq('owner_id', user.id)
       .single()
 
     if (!existing) {

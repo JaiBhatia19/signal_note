@@ -38,28 +38,28 @@ async function AnalyticsDashboard() {
   // Get feedback by source
   const { data: sourceData } = await supabase
     .from('feedback')
-    .select('source, sentiment_score, urgency_score, priority')
-    .eq('user_id', user.id)
+    .select('source, sentiment, urgency, business_impact')
+    .eq('owner_id', user.id)
 
   // Get feedback by user segment
   const { data: segmentData } = await supabase
     .from('feedback')
-    .select('user_segment, sentiment_score, urgency_score, priority')
-    .eq('user_id', user.id)
+    .select('user_segment, sentiment, urgency, business_impact')
+    .eq('owner_id', user.id)
     .not('user_segment', 'is', null)
 
   // Get feedback by product area
   const { data: areaData } = await supabase
     .from('feedback')
-    .select('product_area, sentiment_score, urgency_score, priority')
-    .eq('user_id', user.id)
+    .select('product_area, sentiment, urgency, business_impact')
+    .eq('owner_id', user.id)
     .not('product_area', 'is', null)
 
   // Get recent clusters
   const { data: recentClusters } = await supabase
-    .from('feedback_clusters')
+    .from('clusters')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('owner_id', user.id)
     .order('created_at', { ascending: false })
     .limit(5)
 
@@ -68,36 +68,36 @@ async function AnalyticsDashboard() {
   // Process source data
   const sourceStats = sourceData?.reduce((acc: any, item) => {
     if (!acc[item.source]) {
-      acc[item.source] = { count: 0, totalSentiment: 0, totalUrgency: 0, priorities: {} }
+      acc[item.source] = { count: 0, totalSentiment: 0, totalUrgency: 0, business_impacts: {} }
     }
     acc[item.source].count++
-    if (item.sentiment_score) acc[item.source].totalSentiment += item.sentiment_score
-    if (item.urgency_score) acc[item.source].totalUrgency += item.urgency_score
-    acc[item.source].priorities[item.priority] = (acc[item.source].priorities[item.priority] || 0) + 1
+    if (item.sentiment) acc[item.source].totalSentiment += item.sentiment
+    if (item.urgency) acc[item.source].totalUrgency += item.urgency
+    acc[item.source].business_impacts[item.business_impact] = (acc[item.source].business_impacts[item.business_impact] || 0) + 1
     return acc
   }, {})
 
   // Process segment data
   const segmentStats = segmentData?.reduce((acc: any, item) => {
     if (!acc[item.user_segment]) {
-      acc[item.user_segment] = { count: 0, totalSentiment: 0, totalUrgency: 0, priorities: {} }
+      acc[item.user_segment] = { count: 0, totalSentiment: 0, totalUrgency: 0, business_impacts: {} }
     }
     acc[item.user_segment].count++
-    if (item.sentiment_score) acc[item.user_segment].totalSentiment += item.sentiment_score
-    if (item.urgency_score) acc[item.user_segment].totalUrgency += item.urgency_score
-    acc[item.user_segment].priorities[item.priority] = (acc[item.user_segment].priorities[item.priority] || 0) + 1
+    if (item.sentiment) acc[item.user_segment].totalSentiment += item.sentiment
+    if (item.urgency) acc[item.user_segment].totalUrgency += item.urgency
+    acc[item.user_segment].business_impacts[item.business_impact] = (acc[item.user_segment].business_impacts[item.business_impact] || 0) + 1
     return acc
   }, {})
 
   // Process area data
   const areaStats = areaData?.reduce((acc: any, item) => {
     if (!acc[item.product_area]) {
-      acc[item.product_area] = { count: 0, totalSentiment: 0, totalUrgency: 0, priorities: {} }
+      acc[item.product_area] = { count: 0, totalSentiment: 0, totalUrgency: 0, business_impacts: {} }
     }
     acc[item.product_area].count++
-    if (item.sentiment_score) acc[item.product_area].totalSentiment += item.sentiment_score
-    if (item.urgency_score) acc[item.product_area].totalUrgency += item.urgency_score
-    acc[item.product_area].priorities[item.priority] = (acc[item.product_area].priorities[item.priority] || 0) + 1
+    if (item.sentiment) acc[item.product_area].totalSentiment += item.sentiment
+    if (item.urgency) acc[item.product_area].totalUrgency += item.urgency
+    acc[item.product_area].business_impacts[item.business_impact] = (acc[item.product_area].business_impacts[item.business_impact] || 0) + 1
     return acc
   }, {})
 
@@ -186,9 +186,9 @@ async function AnalyticsDashboard() {
                   </div>
                 )}
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {Object.entries(stats.priorities).map(([priority, count]: [string, any]) => (
-                    <Badge key={priority} className={`text-xs ${getPriorityColor(priority)}`}>
-                      {priority}: {count}
+                  {Object.entries(stats.business_impacts).map(([impact, count]: [string, any]) => (
+                    <Badge key={impact} className={`text-xs ${getPriorityColor(impact)}`}>
+                      Impact {impact}: {count}
                     </Badge>
                   ))}
                 </div>
@@ -227,9 +227,9 @@ async function AnalyticsDashboard() {
                   </div>
                 )}
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {Object.entries(stats.priorities).map(([priority, count]: [string, any]) => (
-                    <Badge key={priority} className={`text-xs ${getPriorityColor(priority)}`}>
-                      {priority}: {count}
+                  {Object.entries(stats.business_impacts).map(([impact, count]: [string, any]) => (
+                    <Badge key={impact} className={`text-xs ${getPriorityColor(impact)}`}>
+                      Impact {impact}: {count}
                     </Badge>
                   ))}
                 </div>
@@ -268,9 +268,9 @@ async function AnalyticsDashboard() {
                   </div>
                 )}
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {Object.entries(stats.priorities).map(([priority, count]: [string, any]) => (
-                    <Badge key={priority} className={`text-xs ${getPriorityColor(priority)}`}>
-                      {priority}: {count}
+                  {Object.entries(stats.business_impacts).map(([impact, count]: [string, any]) => (
+                    <Badge key={impact} className={`text-xs ${getPriorityColor(impact)}`}>
+                      Impact {impact}: {count}
                     </Badge>
                   ))}
                 </div>
@@ -293,17 +293,16 @@ async function AnalyticsDashboard() {
             recentClusters.map((cluster: any) => (
               <div key={cluster.id} className="flex items-start justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
-                  <h4 className="font-medium text-gray-900">{cluster.title}</h4>
-                  <p className="text-sm text-gray-600">{cluster.description}</p>
+                  <h4 className="font-medium text-gray-900">{cluster.label}</h4>
+                  <p className="text-sm text-gray-600">{cluster.feature_request}</p>
                   <div className="flex items-center space-x-2 mt-2">
-                    <Badge variant="default">{cluster.theme}</Badge>
-                    <span className={`text-xs px-2 py-1 rounded-full ${getSentimentColor(cluster.sentiment_trend === 'positive' ? 0.8 : cluster.sentiment_trend === 'negative' ? 0.2 : 0.5)}`}>
-                      {cluster.sentiment_trend}
+                    <Badge variant="default">{cluster.size} items</Badge>
+                    <span className={`text-xs px-2 py-1 rounded-full ${getSentimentColor(cluster.avg_sentiment)}`}>
+                      {Math.round(cluster.avg_sentiment * 100)}%
                     </span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${getUrgencyColor(cluster.urgency_level === 'critical' ? 0.9 : cluster.urgency_level === 'high' ? 0.7 : cluster.urgency_level === 'medium' ? 0.5 : 0.3)}`}>
-                      {cluster.urgency_level}
+                    <span className={`text-xs px-2 py-1 rounded-full ${getUrgencyColor(cluster.avg_urgency)}`}>
+                      {Math.round(cluster.avg_urgency * 100)}%
                     </span>
-                    <span className="text-xs text-gray-500">{cluster.feedback_count} items</span>
                   </div>
                 </div>
               </div>

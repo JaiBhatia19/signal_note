@@ -24,34 +24,25 @@ export async function POST() {
         .from('feedback')
         .insert([
           {
-            user_id: user.id,
+            owner_id: user.id,
             source: 'manual',
-            content: 'The onboarding process is too complicated. Users get confused at step 3.',
+            text: 'The onboarding process is too complicated. Users get confused at step 3.',
             user_segment: 'new_users',
-            product_area: 'onboarding',
-            priority: 'high',
-            sentiment_score: 0.3,
-            urgency_score: 0.8
+            product_area: 'onboarding'
           },
           {
-            user_id: user.id,
+            owner_id: user.id,
             source: 'email',
-            content: 'Love the new dashboard! Much easier to navigate than before.',
+            text: 'Love the new dashboard! Much easier to navigate than before.',
             user_segment: 'power_users',
-            product_area: 'dashboard',
-            priority: 'low',
-            sentiment_score: 0.9,
-            urgency_score: 0.2
+            product_area: 'dashboard'
           },
           {
-            user_id: user.id,
+            owner_id: user.id,
             source: 'slack',
-            content: 'We need better search functionality. Current search is too basic.',
+            text: 'We need better search functionality. Current search is too basic.',
             user_segment: 'product_managers',
-            product_area: 'search',
-            priority: 'medium',
-            sentiment_score: 0.5,
-            urgency_score: 0.6
+            product_area: 'search'
           }
         ])
 

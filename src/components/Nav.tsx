@@ -22,10 +22,10 @@ export default function Nav() {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('is_pro')
+          .select('role')
           .eq('id', user.id)
           .single()
-        setIsPro(profile?.is_pro || false)
+        setIsPro(profile?.role === 'pro')
       }
       setLoading(false)
     }
@@ -37,10 +37,10 @@ export default function Nav() {
       if (session?.user) {
         const { data: profile } = await getSupabaseBrowser()
           .from('profiles')
-          .select('is_pro')
+          .select('role')
           .eq('id', session.user.id)
           .single()
-        setIsPro(profile?.is_pro || false)
+        setIsPro(profile?.role === 'pro')
       } else {
         setIsPro(false)
       }

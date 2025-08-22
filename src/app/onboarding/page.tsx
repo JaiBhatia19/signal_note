@@ -69,58 +69,43 @@ export default function OnboardingPage() {
       const supabase = getSupabaseBrowser()
       
       // Update user profile with onboarding data
-      await supabase
-        .from('profiles')
-        .update({
-          company_name: companyName,
-          industry: industry,
-          team_size: teamSize,
-          feedback_sources: feedbackSources,
-          onboarding_completed: true
-        })
-        .eq('id', user.id)
+              await supabase
+          .from('profiles')
+          .update({
+            name: companyName,
+            onboarding_completed: true
+          })
+          .eq('id', user.id)
 
       // Create sample feedback data for immediate value
       const sampleFeedback = [
         {
-          user_id: user.id,
+          owner_id: user.id,
           source: 'User Interview',
-          content: "The onboarding process is too complicated. Users get confused at step 3 and often abandon the process. We need to simplify this significantly.",
+          text: "The onboarding process is too complicated. Users get confused at step 3 and often abandon the process. We need to simplify this significantly.",
           user_segment: 'New Users',
-          product_area: 'Onboarding',
-          priority: 'high',
-          sentiment_score: 0.3,
-          urgency_score: 0.8
+          product_area: 'Onboarding'
         },
         {
-          user_id: user.id,
+          owner_id: user.id,
           source: 'Support Ticket',
-          content: "Love the new dashboard design! Much easier to navigate than before. The charts are clearer and the data visualization is really helpful.",
+          text: "Love the new dashboard design! Much easier to navigate than before. The charts are clearer and the data visualization is really helpful.",
           user_segment: 'Power Users',
-          product_area: 'Dashboard',
-          priority: 'low',
-          sentiment_score: 0.9,
-          urgency_score: 0.2
+          product_area: 'Dashboard'
         },
         {
-          user_id: user.id,
+          owner_id: user.id,
           source: 'App Store Review',
-          content: "Great app but the search function is too slow. It takes 5-10 seconds to return results, which makes it unusable for quick lookups.",
+          text: "Great app but the search function is too slow. It takes 5-10 seconds to return results, which makes it unusable for quick lookups.",
           user_segment: 'Enterprise Users',
-          product_area: 'Search',
-          priority: 'high',
-          sentiment_score: 0.5,
-          urgency_score: 0.7
+          product_area: 'Search'
         },
         {
-          user_id: user.id,
+          owner_id: user.id,
           source: 'Email Feedback',
-          content: "The mobile app needs better offline support. When I'm on the train without internet, I can't access my saved documents.",
+          text: "The mobile app needs better offline support. When I'm on the train without internet, I can't access my saved documents.",
           user_segment: 'Mobile Users',
-          product_area: 'Mobile App',
-          priority: 'medium',
-          sentiment_score: 0.4,
-          urgency_score: 0.6
+          product_area: 'Mobile App'
         }
       ]
 
@@ -129,35 +114,7 @@ export default function OnboardingPage() {
         await supabase.from('feedback').insert(feedback)
       }
 
-      // Create sample feature requests
-      const sampleFeatures = [
-        {
-          user_id: user.id,
-          title: 'Simplify Onboarding Flow',
-          description: 'Reduce onboarding steps from 5 to 3 and add progress indicators',
-          status: 'open',
-          impact_score: 8.5,
-          effort_score: 6.0,
-          roi_estimate: 85,
-          affected_users: 'New Users',
-          business_value: 'Reduce user abandonment by 40%'
-        },
-        {
-          user_id: user.id,
-          title: 'Optimize Search Performance',
-          description: 'Implement search result caching and improve query performance',
-          status: 'open',
-          impact_score: 9.0,
-          effort_score: 7.5,
-          roi_estimate: 90,
-          affected_users: 'Enterprise Users',
-          business_value: 'Improve user satisfaction and retention'
-        }
-      ]
 
-      for (const feature of sampleFeatures) {
-        await supabase.from('feature_requests').insert(feature)
-      }
 
       router.push('/dashboard?onboarding=complete')
     } catch (error) {

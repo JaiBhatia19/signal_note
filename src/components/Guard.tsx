@@ -25,7 +25,7 @@ export default async function Guard({ children, requirePro = false }: GuardProps
     if (requirePro) {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('is_pro')
+        .select('role')
         .eq('id', user.id)
         .single()
       
@@ -34,7 +34,7 @@ export default async function Guard({ children, requirePro = false }: GuardProps
         redirect('/login')
       }
       
-      if (!profile?.is_pro) {
+      if (profile?.role !== 'pro') {
         redirect('/settings?upgrade=1')
       }
     }

@@ -41,13 +41,13 @@ export async function POST() {
 
   const { data, error } = await supabase
     .from("feedback")
-    .select("id, content, user_segment, product_area, sentiment_score, urgency_score, priority")
-    .eq("user_id", user.id)
+    .select("id, text, user_segment, product_area, sentiment, urgency, business_impact")
+    .eq("owner_id", user.id)
     .order("created_at", { ascending: false })
     .limit(200)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-  const lines = data.map((d, i) => `${i}. ${d.content}${d.user_segment ? ` [${d.user_segment}]` : ''}${d.product_area ? ` (${d.product_area})` : ''}`).join("\n")
+  const lines = data.map((d, i) => `${i}. ${d.text}${d.user_segment ? ` [${d.user_segment}]` : ''}${d.product_area ? ` (${d.product_area})` : ''}`).join("\n")
 
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
