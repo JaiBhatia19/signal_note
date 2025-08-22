@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=${error}&description=${errorDescription}`)
   }
 
+  // Handle OAuth code flow
   if (code) {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -51,6 +52,15 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // If there's no code or other issues, redirect to login
+  // Handle magic link hash fragment flow
+  // Magic links come with hash fragments that contain the session data
+  // We need to redirect to a client-side handler that can process the hash
+  const url = new URL(request.url)
+  if (url.hash && url.hash.includes('access_token')) {
+    // Magic link with hash fragment - redirect to client-side handler
+    return NextResponse.redirect(`${origin}/auth/callback?type=magiclink&hash=${encodeURIComponent(url.hash)}`)
+  }
+
+  // If there's no code or hash, redirect to login
   return NextResponse.redirect(`${origin}/login?error=no_auth_code&description=No authentication code provided`)
 } 
