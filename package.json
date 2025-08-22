@@ -10,6 +10,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
+    "test:e2e:prod": "TEST_BASE_URL=https://signalnote.vercel.app playwright test production-smoke.spec.ts",
     "typecheck": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts"
   },
