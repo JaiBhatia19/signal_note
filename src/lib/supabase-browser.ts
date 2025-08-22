@@ -1,9 +1,18 @@
 import { createClient } from "@supabase/supabase-js"
 
+// Create a singleton instance to prevent multiple clients
+let supabaseClient: ReturnType<typeof createClient> | null = null
+
 export const getSupabaseBrowser = () => {
+  // Return existing client if already created
+  if (supabaseClient) {
+    return supabaseClient
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   
+  console.log('Creating new Supabase client...')
   console.log('Supabase URL:', url)
   console.log('Supabase Key exists:', !!key)
   
@@ -13,7 +22,7 @@ export const getSupabaseBrowser = () => {
   }
   
   try {
-    const client = createClient(url, key, {
+    supabaseClient = createClient(url, key, {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
@@ -21,9 +30,12 @@ export const getSupabaseBrowser = () => {
       }
     })
     console.log('Supabase client created successfully')
-    return client
+    return supabaseClient
   } catch (error) {
     console.error('Error creating Supabase client:', error)
     throw error
   }
-} 
+}
+
+// Export the client directly for components that need it
+export const supabase = getSupabaseBrowser() 

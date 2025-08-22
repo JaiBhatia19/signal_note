@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSupabaseBrowser } from '@/lib/supabase-browser'
+import { supabase } from '@/lib/supabase-browser'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -22,8 +22,8 @@ export default function AuthCallbackPage() {
         if (hash && hash.includes('access_token')) {
           console.log('Processing magic link authentication...')
           
-          // Use the existing Supabase client to avoid multiple instances
-          const supabase = getSupabaseBrowser()
+          // Use the singleton Supabase client
+          console.log('Using singleton Supabase client')
 
           // Process the hash fragment
           const hashParams = new URLSearchParams(hash.substring(1)) // Remove the # symbol
