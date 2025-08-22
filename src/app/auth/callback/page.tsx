@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -22,11 +22,8 @@ export default function AuthCallbackPage() {
         if (hash && hash.includes('access_token')) {
           console.log('Processing magic link authentication...')
           
-          // This is a magic link callback
-          const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-          )
+          // Use the existing Supabase client to avoid multiple instances
+          const supabase = getSupabaseBrowser()
 
           // Process the hash fragment
           const hashParams = new URLSearchParams(hash.substring(1)) // Remove the # symbol
@@ -41,62 +38,71 @@ export default function AuthCallbackPage() {
           if (accessToken && refreshToken) {
             console.log('Setting Supabase session...')
             
-            // Set the session using the tokens from the hash
-            const { data, error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            })
+            try {
+              // Set the session using the tokens from the hash
+              const { data, error } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              })
 
-            if (error) {
-              console.error('Session error:', error)
-              throw error
-            }
-
-            if (data.user) {
-              console.log('User authenticated:', data.user.email)
-              
-              try {
-                // Check if user has completed onboarding
-                const { data: profile, error: profileError } = await supabase
-                  .from('profiles')
-                  .select('onboarding_completed')
-                  .eq('id', data.user.id)
-                  .single()
-
-                if (profileError) {
-                  console.log('No profile found, creating one...')
-                  // Create profile if it doesn't exist
-                  const { error: createError } = await supabase
-                    .from('profiles')
-                    .insert({
-                      id: data.user.id,
-                      email: data.user.email,
-                      onboarding_completed: false,
-                      created_at: new Date().toISOString()
-                    })
-                  
-                  if (createError) {
-                    console.error('Profile creation error:', createError)
-                    throw createError
-                  }
-                }
-
-                // Determine redirect destination
-                let redirectPath = '/dashboard'
-                if (!profile?.onboarding_completed) {
-                  redirectPath = '/onboarding'
-                }
-
-                console.log('Redirecting to:', redirectPath)
-                // Successfully authenticated, redirect to appropriate page
-                router.push(redirectPath)
-                return
-              } catch (profileErr) {
-                console.error('Profile handling error:', profileErr)
-                // If profile creation fails, still redirect to onboarding
-                router.push('/onboarding')
-                return
+              if (error) {
+                console.error('Session error:', error)
+                throw error
               }
+
+              if (data.user) {
+                console.log('User authenticated:', data.user.email)
+                
+                try {
+                  // Check if user has completed onboarding
+                  const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('onboarding_completed')
+                    .eq('id', data.user.id)
+                    .single()
+
+                  if (profileError) {
+                    console.log('No profile found, creating one...')
+                    // Create profile if it doesn't exist
+                    const { error: createError } = await supabase
+                      .from('profiles')
+                      .insert({
+                        id: data.user.id,
+                        email: data.user.email,
+                        onboarding_completed: false,
+                        created_at: new Date().toISOString()
+                      })
+                    
+                    if (createError) {
+                      console.error('Profile creation error:', createError)
+                      // Don't throw here, just log and continue
+                      console.log('Profile creation failed, but continuing...')
+                    }
+                  }
+
+                  // Determine redirect destination
+                  let redirectPath = '/dashboard'
+                  if (!profile?.onboarding_completed) {
+                    redirectPath = '/onboarding'
+                  }
+
+                  console.log('Redirecting to:', redirectPath)
+                  // Successfully authenticated, redirect to appropriate page
+                  router.push(redirectPath)
+                  return
+                } catch (profileErr) {
+                  console.error('Profile handling error:', profileErr)
+                  // If profile creation fails, still redirect to onboarding
+                  router.push('/onboarding')
+                  return
+                }
+              } else {
+                console.error('No user data returned from session')
+                throw new Error('No user data returned')
+              }
+            } catch (sessionError) {
+              console.error('Session setup error:', sessionError)
+              throw sessionError
             }
           } else {
             console.error('Missing tokens in hash')
