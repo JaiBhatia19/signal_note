@@ -1,0 +1,130 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "SignalNote" [ref=e6] [cursor=pointer]:
+        - /url: /
+      - link "Sign In" [ref=e8] [cursor=pointer]:
+        - /url: /login
+        - button "Sign In" [ref=e9] [cursor=pointer]
+  - main [ref=e10]:
+    - generic [ref=e13]:
+      - heading "Turn Customer Feedback Into Actionable Insights" [level=1] [ref=e14]:
+        - text: Turn Customer Feedback Into
+        - generic [ref=e15]: Actionable Insights
+      - paragraph [ref=e16]: Paste transcripts, notes, or feedback. Get AI-powered analysis, semantic search, and automated clustering to identify recurring themes and pain points.
+      - generic [ref=e17]:
+        - link "Get Started Free" [ref=e18] [cursor=pointer]:
+          - /url: /login
+          - button "Get Started Free" [ref=e19] [cursor=pointer]
+        - link "View Pricing" [ref=e20] [cursor=pointer]:
+          - /url: /pricing
+          - button "View Pricing" [ref=e21] [cursor=pointer]
+      - generic [ref=e22]:
+        - heading "Join the Waitlist for Early Access" [level=3] [ref=e23]
+        - paragraph [ref=e24]: Be among the first to transform your customer feedback into actionable insights.
+        - link "Join Waitlist" [ref=e25] [cursor=pointer]:
+          - /url: /waitlist
+          - button "Join Waitlist" [ref=e26] [cursor=pointer]
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - img [ref=e30]
+          - heading "Smart Analysis" [level=3] [ref=e32]
+          - paragraph [ref=e33]: AI-powered feedback analysis with semantic understanding
+        - generic [ref=e34]:
+          - img [ref=e36]
+          - heading "Semantic Search" [level=3] [ref=e38]
+          - paragraph [ref=e39]: Find relevant feedback instantly with natural language queries
+        - generic [ref=e40]:
+          - img [ref=e42]
+          - heading "Auto Clustering" [level=3] [ref=e44]
+          - paragraph [ref=e45]: Automatically group feedback into actionable themes
+      - generic [ref=e46]:
+        - heading "How It Works" [level=2] [ref=e47]
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - generic [ref=e50]: "1"
+            - heading "Collect Feedback" [level=3] [ref=e51]
+            - paragraph [ref=e52]: Paste customer feedback from any source - emails, surveys, support tickets, or interviews.
+          - generic [ref=e53]:
+            - generic [ref=e54]: "2"
+            - heading "AI Analysis" [level=3] [ref=e55]
+            - paragraph [ref=e56]: Our AI automatically analyzes and categorizes feedback using semantic understanding.
+          - generic [ref=e57]:
+            - generic [ref=e58]: "3"
+            - heading "Get Insights" [level=3] [ref=e59]
+            - paragraph [ref=e60]: Discover patterns, prioritize features, and make data-driven product decisions.
+      - generic [ref=e61]:
+        - heading "Perfect For" [level=2] [ref=e62]
+        - generic [ref=e63]:
+          - generic [ref=e65]:
+            - img [ref=e67]
+            - generic [ref=e69]:
+              - heading "Product Teams" [level=3] [ref=e70]
+              - paragraph [ref=e71]: Prioritize features based on real user feedback and identify common pain points.
+          - generic [ref=e73]:
+            - img [ref=e75]
+            - generic [ref=e77]:
+              - heading "Customer Success" [level=3] [ref=e78]
+              - paragraph [ref=e79]: Track customer satisfaction trends and identify areas for improvement.
+          - generic [ref=e81]:
+            - img [ref=e83]
+            - generic [ref=e85]:
+              - heading "UX Researchers" [level=3] [ref=e86]
+              - paragraph [ref=e87]: Analyze user interviews and usability studies to find insights.
+          - generic [ref=e89]:
+            - img [ref=e91]
+            - generic [ref=e93]:
+              - heading "Startups" [level=3] [ref=e94]
+              - paragraph [ref=e95]: Make data-driven decisions with limited resources and user feedback.
+      - generic [ref=e96]:
+        - heading "Simple Pricing" [level=2] [ref=e97]
+        - generic [ref=e98]:
+          - generic [ref=e99]:
+            - heading "Free" [level=3] [ref=e100]
+            - generic [ref=e101]: $0
+            - list [ref=e102]:
+              - listitem [ref=e103]:
+                - img [ref=e104]
+                - text: Collect unlimited feedback
+              - listitem [ref=e106]:
+                - img [ref=e107]
+                - text: Basic dashboard
+              - listitem [ref=e109]:
+                - img [ref=e110]
+                - text: Store feedback securely
+            - link "Get Started Free" [ref=e112] [cursor=pointer]:
+              - /url: /login
+              - button "Get Started Free" [ref=e113] [cursor=pointer]
+          - generic [ref=e114]:
+            - generic [ref=e115]: Most Popular
+            - heading "Pro" [level=3] [ref=e116]
+            - generic [ref=e117]:
+              - text: $100
+              - generic [ref=e118]: /month
+            - list [ref=e119]:
+              - listitem [ref=e120]:
+                - img [ref=e121]
+                - text: Everything in Free
+              - listitem [ref=e123]:
+                - img [ref=e124]
+                - text: AI-powered semantic search
+              - listitem [ref=e126]:
+                - img [ref=e127]
+                - text: Automated clustering & insights
+              - listitem [ref=e129]:
+                - img [ref=e130]
+                - text: Advanced analytics & reporting
+            - link "Start Pro Trial" [ref=e132] [cursor=pointer]:
+              - /url: /login
+              - button "Start Pro Trial" [ref=e133] [cursor=pointer]
+      - generic [ref=e134]:
+        - heading "Ready to get started?" [level=2] [ref=e135]
+        - paragraph [ref=e136]: Join product teams using SignalNote to make data-driven decisions.
+        - link "Start Your Free Trial" [ref=e137] [cursor=pointer]:
+          - /url: /login
+          - button "Start Your Free Trial" [ref=e138] [cursor=pointer]
+  - alert [ref=e139]
+```

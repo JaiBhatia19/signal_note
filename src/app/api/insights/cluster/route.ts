@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSupabaseServer } from "@/lib/supabase-server"
-import { getOpenAI } from "@/lib/openai"
+import OpenAI from 'openai'
 
 const CLUSTER_PROMPT = (items: string) => `
 You are a senior product manager analyzing customer feedback. Group similar feedback into 3-7 clusters and provide:
@@ -49,7 +49,9 @@ export async function POST() {
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   const lines = data.map((d, i) => `${i}. ${d.content}${d.user_segment ? ` [${d.user_segment}]` : ''}${d.product_area ? ` (${d.product_area})` : ''}`).join("\n")
 
-  const openai = getOpenAI()
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  })
   const resp = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [

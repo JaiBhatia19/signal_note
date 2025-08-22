@@ -14,44 +14,39 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Get user profile and onboarding status
+  // Get user profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  // If user hasn't completed onboarding, redirect them
-  if (!profile?.onboarding_completed) {
-    redirect('/onboarding')
-  }
-
   // Get feedback analytics
   const { data: feedback } = await supabase
     .from('feedback')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('owner_id', user.id)
     .order('created_at', { ascending: false })
 
-  // Get feature requests
-  const { data: featureRequests } = await supabase
-    .from('feature_requests')
+  // Get clusters
+  const { data: clusters } = await supabase
+    .from('clusters')
     .select('*')
-    .eq('user_id', user.id)
-    .order('impact_score', { ascending: false })
+    .eq('owner_id', user.id)
+    .order('size', { ascending: false })
 
   // Calculate insights
   const totalFeedback = feedback?.length || 0
   const avgSentiment = feedback?.length 
-    ? feedback.reduce((sum, f) => sum + (f.sentiment_score || 0.5), 0) / feedback.length
+    ? feedback.reduce((sum, f) => sum + (f.sentiment || 0.5), 0) / feedback.length
     : 0.5
   const avgUrgency = feedback?.length
-    ? feedback.reduce((sum, f) => sum + (f.urgency_score || 0.5), 0) / feedback.length
+    ? feedback.reduce((sum, f) => sum + (f.urgency || 0.5), 0) / feedback.length
     : 0.5
 
-  // Get top insights
-  const topInsights = feedback?.slice(0, 3) || []
+  // Get recent feedback
   const recentFeedback = feedback?.slice(0, 5) || []
+  const topClusters = clusters?.slice(0, 3) || []
 
   const getSentimentColor = (score: number) => {
     if (score >= 0.7) return 'text-green-600'
@@ -65,14 +60,8 @@ export default async function DashboardPage() {
     return 'text-green-600'
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'critical': return 'bg-red-100 text-red-800'
-      case 'high': return 'bg-orange-100 text-orange-800'
-      case 'medium': return 'bg-yellow-100 text-yellow-800'
-      case 'low': return 'bg-green-100 text-green-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
+  const formatPercentage = (score: number) => {
+    return Math.round(score * 100)
   }
 
   return (
@@ -82,7 +71,7 @@ export default async function DashboardPage() {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold mb-2">
-              Welcome back, {profile?.company_name || 'Team'}! 👋
+              Welcome back, {profile?.name || 'Team'}! 👋
             </h1>
             <p className="text-blue-100 text-lg">
               Here's what's happening with your customer feedback today.
@@ -95,17 +84,17 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Stats */}
+      {/* KPI Cards */}
       <div className="grid md:grid-cols-4 gap-6">
         <Card className="text-center p-6">
           <div className="text-3xl font-bold text-blue-600 mb-2">{totalFeedback}</div>
-          <div className="text-gray-600">Feedback Items</div>
+          <div className="text-gray-600">Total Feedback</div>
           <div className="text-sm text-gray-500 mt-1">All time</div>
         </Card>
         
         <Card className="text-center p-6">
           <div className={`text-3xl font-bold mb-2 ${getSentimentColor(avgSentiment)}`}>
-            {Math.round(avgSentiment * 100)}%
+            {formatPercentage(avgSentiment)}%
           </div>
           <div className="text-gray-600">Avg Sentiment</div>
           <div className="text-sm text-gray-500 mt-1">Customer happiness</div>
@@ -113,70 +102,65 @@ export default async function DashboardPage() {
         
         <Card className="text-center p-6">
           <div className={`text-3xl font-bold mb-2 ${getUrgencyColor(avgUrgency)}`}>
-            {Math.round(avgUrgency * 100)}%
+            {formatPercentage(avgUrgency)}%
           </div>
           <div className="text-gray-600">Avg Urgency</div>
           <div className="text-sm text-gray-500 mt-1">Issue priority</div>
         </Card>
         
         <Card className="text-center p-6">
-          <div className="text-3xl font-bold text-purple-600 mb-2">{featureRequests?.length || 0}</div>
-          <div className="text-gray-600">Feature Requests</div>
+          <div className="text-3xl font-bold text-purple-600 mb-2">{clusters?.length || 0}</div>
+          <div className="text-gray-600">Clusters</div>
           <div className="text-sm text-gray-500 mt-1">AI generated</div>
         </Card>
       </div>
 
-      {/* Top Insights */}
+      {/* Top Clusters */}
       <Card>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">🔍 Top Insights</h2>
+          <h2 className="text-xl font-semibold text-gray-900">🎯 Top Clusters</h2>
           <Link href="/insights" className="text-blue-600 hover:text-blue-700 text-sm">
             View All →
           </Link>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
-          {topInsights.map((insight, index) => (
-            <div key={insight.id} className="p-4 bg-gray-50 rounded-lg">
+          {topClusters.map((cluster) => (
+            <div key={cluster.id} className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <Badge variant="default" className="text-xs">
-                  {insight.source}
+                  {cluster.size} items
                 </Badge>
                 <span className="text-xs text-gray-500">
-                  {new Date(insight.created_at).toLocaleDateString()}
+                  {new Date(cluster.created_at).toLocaleDateString()}
                 </span>
               </div>
-              <p className="text-gray-700 text-sm mb-3 line-clamp-3">
-                {insight.content}
+              <h3 className="font-medium text-gray-900 mb-2">{cluster.label}</h3>
+              <div className="flex items-center space-x-4 mb-3 text-sm">
+                <span className={`${getSentimentColor(cluster.avg_sentiment)}`}>
+                  Sentiment: {formatPercentage(cluster.avg_sentiment)}%
+                </span>
+                <span className={`${getUrgencyColor(cluster.avg_urgency)}`}>
+                  Urgency: {formatPercentage(cluster.avg_urgency)}%
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                {cluster.feature_request}
               </p>
-              <div className="flex items-center justify-between">
-                <div className="flex space-x-2">
-                  {insight.user_segment && (
-                    <Badge variant="outline" className="text-xs">
-                      {insight.user_segment}
-                    </Badge>
-                  )}
-                  {insight.product_area && (
-                    <Badge variant="outline" className="text-xs">
-                      {insight.product_area}
-                    </Badge>
-                  )}
-                </div>
-                <Badge className={`text-xs ${getPriorityColor(insight.priority)}`}>
-                  {insight.priority}
-                </Badge>
+              <div className="text-xs text-gray-500">
+                {cluster.action_items}
               </div>
             </div>
           ))}
         </div>
-        {topInsights.length === 0 && (
+        {topClusters.length === 0 && (
           <div className="text-center py-8">
             <div className="text-gray-400 mb-2">
               <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
               </svg>
             </div>
-            <p className="text-gray-500 mb-4">No insights yet. Add some feedback to get started!</p>
-            <Link href="/add-feedback">
+            <p className="text-gray-500 mb-4">No clusters yet. Add some feedback to get started!</p>
+            <Link href="/ingest">
               <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
                 Add Feedback
               </button>
@@ -199,16 +183,20 @@ export default async function DashboardPage() {
             {recentFeedback.map((item) => (
               <div key={item.id} className="p-3 bg-gray-50 rounded-lg">
                 <p className="text-gray-700 text-sm line-clamp-2 mb-2">
-                  {item.content}
+                  {item.text}
                 </p>
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex space-x-2">
-                    <Badge variant="default" className="text-xs">
-                      {item.source}
-                    </Badge>
-                    <Badge className={`text-xs ${getPriorityColor(item.priority)}`}>
-                      {item.priority}
-                    </Badge>
+                    {item.source && (
+                      <Badge variant="default" className="text-xs">
+                        {item.source}
+                      </Badge>
+                    )}
+                    {item.sentiment && (
+                      <Badge className={`text-xs ${getSentimentColor(item.sentiment)}`}>
+                        {formatPercentage(item.sentiment)}%
+                      </Badge>
+                    )}
                   </div>
                   <span className="text-gray-500">
                     {new Date(item.created_at).toLocaleDateString()}
@@ -228,7 +216,7 @@ export default async function DashboardPage() {
         <Card>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">⚡ Quick Actions</h2>
           <div className="space-y-3">
-            <Link href="/add-feedback">
+            <Link href="/ingest">
               <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer">
                 <div className="text-blue-600 mb-2">
                   <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,73 +255,6 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* Feature Requests */}
-      <Card>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">🚀 Feature Requests</h2>
-          <Link href="/insights" className="text-blue-600 hover:text-blue-700 text-sm">
-            Generate More →
-          </Link>
-        </div>
-        <div className="space-y-4">
-          {featureRequests && featureRequests.length > 0 ? (
-            featureRequests.map((fr) => (
-              <div key={fr.id} className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-medium text-gray-900">{fr.title}</h3>
-                  <div className="flex space-x-2">
-                    <Badge variant="outline" className="text-xs">
-                      Impact: {fr.impact_score}/10
-                    </Badge>
-                    {fr.roi_estimate && (
-                      <Badge variant="outline" className="text-xs">
-                        ROI: {fr.roi_estimate}%
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 mb-3">{fr.description}</p>
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex space-x-2">
-                    {fr.affected_users && (
-                      <Badge variant="default" className="text-xs">
-                        {fr.affected_users}
-                      </Badge>
-                    )}
-                    <Badge 
-                      variant={
-                        fr.status === 'shipped' ? 'success' : 
-                        fr.status === 'in_progress' ? 'warning' : 'default'
-                      }
-                    >
-                      {fr.status.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                  <span className="text-gray-500">
-                    {new Date(fr.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-400 mb-2">
-                <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                </svg>
-              </div>
-              <p className="text-gray-500 mb-3">No feature requests yet.</p>
-              <p className="text-sm text-gray-400 mb-4">Use the Insights page to generate feature requests from your feedback.</p>
-              <Link href="/insights">
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                  Generate Insights
-                </button>
-              </Link>
-            </div>
-          )}
-        </div>
-      </Card>
-
       {/* Getting Started Tips */}
       {totalFeedback < 5 && (
         <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
@@ -353,7 +274,7 @@ export default async function DashboardPage() {
                 {totalFeedback >= 3 ? '✅ AI Analysis Unlocked' : '🔒 AI Analysis (3+ items)'}
               </div>
               <div className="text-green-600">
-                {totalFeedback >= 5 ? '✅ Insights Unlocked' : '🔒 Insights (5+ items)'}
+                {totalFeedback >= 5 ? '✅ Clustering Unlocked' : '🔒 Clustering (5+ items)'}
               </div>
             </div>
           </div>

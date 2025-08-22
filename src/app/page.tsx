@@ -22,9 +22,24 @@ export default function HomePage() {
               Get Started Free
             </Button>
           </Link>
-          <Link href="/login">
+          <Link href="/pricing">
             <Button variant="outline" size="lg" className="text-lg px-8 py-4">
-              Sign In
+              View Pricing
+            </Button>
+          </Link>
+        </div>
+
+        {/* Waitlist CTA */}
+        <div className="bg-gray-50 rounded-lg p-8 mb-16">
+          <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+            Join the Waitlist for Early Access
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Be among the first to transform your customer feedback into actionable insights.
+          </p>
+          <Link href="/waitlist">
+            <Button size="lg" className="text-lg px-8 py-4">
+              Join Waitlist
             </Button>
           </Link>
         </div>

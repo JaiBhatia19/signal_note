@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSupabaseServer } from "@/lib/supabase-server"
-import { getOpenAI } from "@/lib/openai"
+import { generateEmbedding } from "@/lib/openai"
 
 export async function PUT(
   req: Request,
@@ -31,12 +31,7 @@ export async function PUT(
     // Update embedding if content changed
     let embedding
     if (content) {
-      const openai = getOpenAI()
-      const emb = await openai.embeddings.create({
-        model: "text-embedding-3-small",
-        input: content
-      })
-      embedding = emb.data[0].embedding
+      embedding = await generateEmbedding(content)
     }
 
     const { error } = await supabase

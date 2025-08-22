@@ -1,199 +1,175 @@
-import { NextResponse } from "next/server"
-import { getSupabaseServer } from "@/lib/supabase-server"
-import { getOpenAI } from "@/lib/openai"
-import { withValidation, ValidationSchema } from "@/lib/validation"
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { env } from '@/lib/env';
+import { analyzeAndEmbed, hashText } from '@/lib/openai';
+import { insertEmbedding } from '@/lib/search';
+import { getUser } from '@/lib/guards';
 
-const feedbackSchema: ValidationSchema = {
-  content: {
-    required: true,
-    minLength: 10,
-    maxLength: 10000
-  },
-  source: {
-    required: true,
-    pattern: /^(Manual|Zoom|Slack|Email|Survey|Support|User Interview|App Store Review|Intercom|Zendesk|Hotjar|FullStory)$/
-  },
-  userSegment: {
-    required: false,
-    maxLength: 100
-  },
-  productArea: {
-    required: false,
-    maxLength: 100
-  },
-  priority: {
-    required: true,
-    pattern: /^(low|medium|high|critical)$/
-  }
-}
+const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
-const ANALYSIS_PROMPT = `
-Analyze this customer feedback and provide:
-1. Sentiment score (0-1, where 0 is very negative, 1 is very positive)
-2. Urgency score (0-1, where 0 is not urgent, 1 is critical)
-3. Key insights (3-5 bullet points)
-4. Suggested action items
-5. Business impact assessment
-
-Return as JSON:
-{
-  "sentiment_score": 0.3,
-  "urgency_score": 0.8,
-  "insights": ["point 1", "point 2"],
-  "action_items": ["action 1", "action 2"],
-  "business_impact": "high/medium/low"
-}
-
-Feedback: {content}
-Source: {source}
-User Segment: {userSegment}
-Product Area: {productArea}
-Priority: {priority}
-`
-
-async function handleFeedback(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseServer()
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const user = await getUser();
     if (!user) {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
-    const { content, source, userSegment, productArea, priority } = await req.json()
+    const { text, source, user_segment, product_area } = await request.json();
 
-    // Validate OpenAI API key
-    const openai = getOpenAI()
-    
-    // Generate embedding
-    const emb = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: content
-    })
-    const embedding = emb.data[0].embedding
+    if (!text || typeof text !== 'string') {
+      return NextResponse.json(
+        { error: 'Feedback text is required' },
+        { status: 400 }
+      );
+    }
 
-    // AI Analysis
-    let aiInsights = null
-    let sentimentScore = null
-    let urgencyScore = null
-    
-    try {
-      const analysisResponse = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { 
-            role: "system", 
-            content: "You are a customer feedback analyst. Return only valid JSON." 
-          },
-          { 
-            role: "user", 
-            content: ANALYSIS_PROMPT
-              .replace('{content}', content)
-              .replace('{source}', source)
-              .replace('{userSegment}', userSegment || 'Not specified')
-              .replace('{productArea}', productArea || 'Not specified')
-              .replace('{priority}', priority)
-          }
-        ],
-        temperature: 0.3
-      })
+    // Check daily limit for beta
+    if (env.BETA_FEATURES) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const { count: todayCount } = await supabase
+        .from('feedback')
+        .select('*', { count: 'exact', head: true })
+        .eq('owner_id', user.id)
+        .gte('created_at', today.toISOString());
 
-      const analysisContent = analysisResponse.choices[0].message.content
-      if (analysisContent) {
-        const analysis = JSON.parse(analysisContent)
-        aiInsights = {
-          insights: analysis.insights || [],
-          action_items: analysis.action_items || [],
-          business_impact: analysis.business_impact || 'medium'
-        }
-        sentimentScore = analysis.sentiment_score
-        urgencyScore = analysis.urgency_score
+      if (todayCount && todayCount >= 50) {
+        return NextResponse.json(
+          { error: 'Daily feedback limit reached (50). Please upgrade to Pro for unlimited feedback.' },
+          { status: 429 }
+        );
       }
-    } catch (analysisError) {
-      console.warn('AI analysis failed, continuing without insights:', analysisError)
     }
 
-    const { error } = await supabase.from("feedback").insert({
-      user_id: user.id, 
-      source: source || "Manual", 
-      content, 
-      user_segment: userSegment || null,
-      product_area: productArea || null,
-      priority: priority || "medium",
-      sentiment_score: sentimentScore,
-      urgency_score: urgencyScore,
-      ai_insights: aiInsights,
-      embedding
-    })
-    
-    if (error) {
-      console.error('Database error:', error)
-      return NextResponse.json({ error: "Failed to save feedback" }, { status: 500 })
-    }
-
-    return NextResponse.json({ 
-      ok: true, 
-      analysis: aiInsights ? 'completed' : 'failed',
-      sentiment: sentimentScore,
-      urgency: urgencyScore
-    })
-  } catch (e: any) {
-    console.error('Feedback API error:', e)
-    
-    if (e.message.includes('OPENAI_API_KEY')) {
-      return NextResponse.json({ error: "AI service unavailable" }, { status: 503 })
-    }
-    
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
-}
-
-async function getFeedback(req: Request) {
-  try {
-    const supabase = getSupabaseServer()
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-    }
-
-    const { searchParams } = new URL(req.url)
-    const source = searchParams.get('source')
-    const userSegment = searchParams.get('userSegment')
-    const productArea = searchParams.get('productArea')
-    const priority = searchParams.get('priority')
-    const search = searchParams.get('search')
-    const sortBy = searchParams.get('sortBy') || 'created_at'
-    const sortOrder = searchParams.get('sortOrder') || 'desc'
-
-    let query = supabase
+    // Create feedback record
+    const { data: feedback, error: insertError } = await supabase
       .from('feedback')
-      .select('*')
-      .eq('user_id', user.id)
+      .insert({
+        owner_id: user.id,
+        text: text.trim(),
+        source: source || null,
+        user_segment: user_segment || null,
+        product_area: product_area || null,
+      })
+      .select()
+      .single();
 
-    // Apply filters
-    if (source) query = query.eq('source', source)
-    if (userSegment) query = query.eq('user_segment', userSegment)
-    if (productArea) query = query.eq('product_area', productArea)
-    if (priority) query = query.eq('priority', priority)
-    if (search) query = query.ilike('content', `%${search}%`)
-
-    // Apply sorting
-    query = query.order(sortBy, { ascending: sortOrder === 'asc' })
-
-    const { data: feedback, error } = await query
-
-    if (error) {
-      console.error('Database error:', error)
-      return NextResponse.json({ error: "Failed to fetch feedback" }, { status: 500 })
+    if (insertError) {
+      console.error('Feedback insert error:', insertError);
+      return NextResponse.json(
+        { error: 'Failed to create feedback' },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ feedback: feedback || [] })
-  } catch (e: any) {
-    console.error('Get feedback error:', e)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    // Track event
+    await supabase
+      .from('events')
+      .insert({
+        owner_id: user.id,
+        name: 'feedback_submitted',
+        data: { feedback_id: feedback.id, source, user_segment, product_area },
+      });
+
+    // Run AI analysis in background
+    try {
+      const { analysis, embedding } = await analyzeAndEmbed(text);
+      
+      // Update feedback with analysis results
+      await supabase
+        .from('feedback')
+        .update({
+          analysis,
+          sentiment: analysis.sentiment,
+          urgency: analysis.urgency,
+          business_impact: analysis.business_impact,
+        })
+        .eq('id', feedback.id);
+
+      // Insert embedding
+      await insertEmbedding(feedback.id, embedding);
+
+      // Track successful analysis
+      await supabase
+        .from('events')
+        .insert({
+          owner_id: user.id,
+          name: 'analysis_complete',
+          data: { feedback_id: feedback.id, analysis },
+        });
+
+    } catch (analysisError) {
+      console.error('AI analysis error:', analysisError);
+      // Don't fail the request if analysis fails
+    }
+
+    return NextResponse.json(
+      { 
+        message: 'Feedback created successfully',
+        feedback_id: feedback.id,
+        analysis_complete: true,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('Feedback API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
-export const POST = withValidation(feedbackSchema)(handleFeedback)
-export const GET = getFeedback 
+export async function GET(request: NextRequest) {
+  try {
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = parseInt(searchParams.get('offset') || '0');
+
+    const { data: feedback, error } = await supabase
+      .from('feedback')
+      .select(`
+        id,
+        text,
+        source,
+        user_segment,
+        product_area,
+        sentiment,
+        urgency,
+        business_impact,
+        analysis,
+        created_at
+      `)
+      .eq('owner_id', user.id)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Feedback fetch error:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch feedback' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ feedback: feedback || [] });
+  } catch (error) {
+    console.error('Feedback GET API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+} 

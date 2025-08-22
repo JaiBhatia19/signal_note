@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { validateEnv } from '@/lib/env'
 import { getSupabaseServer } from '@/lib/supabase-server'
-import { getOpenAI } from '@/lib/openai'
+import OpenAI from 'openai'
 import { stripe } from '@/lib/stripe'
 
 export async function GET() {
@@ -14,7 +14,9 @@ export async function GET() {
     const { error: supabaseError } = await supabase.from('profiles').select('count', { count: 'exact', head: true })
     
     // Test OpenAI connection
-    const openai = getOpenAI()
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
     let openaiError = null
     try {
       await openai.models.list()
