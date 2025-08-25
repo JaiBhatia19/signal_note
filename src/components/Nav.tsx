@@ -25,7 +25,7 @@ export default function Nav() {
           .select('role')
           .eq('id', user.id)
           .single()
-        setIsPro(profile?.role === 'pro')
+        setIsPro((profile as any)?.role === 'pro')
       }
       setLoading(false)
     }
@@ -40,7 +40,7 @@ export default function Nav() {
           .select('role')
           .eq('id', session.user.id)
           .single()
-        setIsPro(profile?.role === 'pro')
+        setIsPro((profile as any)?.role === 'pro')
       } else {
         setIsPro(false)
       }

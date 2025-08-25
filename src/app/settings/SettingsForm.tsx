@@ -27,7 +27,7 @@ export default function SettingsForm() {
           .single()
         
         if (profile) {
-          setIsPro(profile.role === 'pro')
+          setIsPro((profile as any).role === 'pro')
           setUserProfile(profile)
         }
       }
