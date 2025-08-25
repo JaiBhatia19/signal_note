@@ -1,0 +1,131 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link "SignalNote" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - link "🚀 Demo" [ref=e7] [cursor=pointer]:
+          - /url: /demo
+        - link "👀 Code" [ref=e8] [cursor=pointer]:
+          - /url: https://github.com/JaiBhatia19/signal_note
+      - link "Try Demo" [ref=e10] [cursor=pointer]:
+        - /url: /demo
+        - button "Try Demo" [ref=e11] [cursor=pointer]
+  - main [ref=e12]:
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - heading "Simple, Transparent Pricing" [level=1] [ref=e17]
+        - paragraph [ref=e18]: Choose the plan that fits your needs
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "Basic Plan" [level=2] [ref=e21]
+          - paragraph [ref=e22]: $0/month
+          - paragraph [ref=e23]: Perfect for getting started
+          - list [ref=e24]:
+            - listitem [ref=e25]:
+              - generic [ref=e26]: ✓
+              - text: Up to 100 feedback items
+            - listitem [ref=e27]:
+              - generic [ref=e28]: ✓
+              - text: Basic AI analysis
+            - listitem [ref=e29]:
+              - generic [ref=e30]: ✓
+              - text: 5 clusters
+            - listitem [ref=e31]:
+              - generic [ref=e32]: ✓
+              - text: Email support
+          - button "Get Started" [ref=e33] [cursor=pointer]:
+            - link "Get Started" [ref=e34] [cursor=pointer]:
+              - /url: /login
+        - generic [ref=e35]:
+          - generic [ref=e36]: Most Popular
+          - heading "Pro Plan" [level=2] [ref=e37]
+          - paragraph [ref=e38]: $100/month
+          - paragraph [ref=e39]: For growing teams
+          - list [ref=e40]:
+            - listitem [ref=e41]:
+              - generic [ref=e42]: ✓
+              - text: Unlimited feedback
+            - listitem [ref=e43]:
+              - generic [ref=e44]: ✓
+              - text: Advanced AI insights
+            - listitem [ref=e45]:
+              - generic [ref=e46]: ✓
+              - text: Unlimited clusters
+            - listitem [ref=e47]:
+              - generic [ref=e48]: ✓
+              - text: Priority support
+            - listitem [ref=e49]:
+              - generic [ref=e50]: ✓
+              - text: Custom integrations
+          - button "Start Pro Trial" [ref=e51] [cursor=pointer]:
+            - link "Start Pro Trial" [ref=e52] [cursor=pointer]:
+              - /url: /login
+      - generic [ref=e53]:
+        - heading "Feature Comparison" [level=3] [ref=e54]
+        - table [ref=e56]:
+          - rowgroup [ref=e57]:
+            - row "Feature Basic Pro" [ref=e58]:
+              - cell "Feature" [ref=e59]
+              - cell "Basic" [ref=e60]
+              - cell "Pro" [ref=e61]
+          - rowgroup [ref=e62]:
+            - row "Feedback Items 100 Unlimited" [ref=e63]:
+              - cell "Feedback Items" [ref=e64]
+              - cell "100" [ref=e65]
+              - cell "Unlimited" [ref=e66]
+            - row "AI Insights Basic Advanced" [ref=e67]:
+              - cell "AI Insights" [ref=e68]
+              - cell "Basic" [ref=e69]
+              - cell "Advanced" [ref=e70]
+            - row "Clusters 5 Unlimited" [ref=e71]:
+              - cell "Clusters" [ref=e72]
+              - cell "5" [ref=e73]
+              - cell "Unlimited" [ref=e74]
+            - row "Support Email Priority" [ref=e75]:
+              - cell "Support" [ref=e76]
+              - cell "Email" [ref=e77]
+              - cell "Priority" [ref=e78]
+            - row "Integrations - Custom" [ref=e79]:
+              - cell "Integrations" [ref=e80]
+              - cell "-" [ref=e81]
+              - cell "Custom" [ref=e82]
+      - generic [ref=e83]:
+        - generic [ref=e84]: Beta features available
+        - paragraph [ref=e85]: Try our latest AI-powered features before they're officially released
+      - generic [ref=e86]:
+        - heading "Frequently Asked Questions" [level=3] [ref=e87]
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - heading "Can I change plans later?" [level=4] [ref=e90]
+            - paragraph [ref=e91]: Absolutely! You can upgrade or downgrade your plan at any time.
+          - generic [ref=e92]:
+            - heading "What happens after my trial?" [level=4] [ref=e93]
+            - paragraph [ref=e94]: After your trial ends, you'll be automatically charged for the Pro plan. You can cancel anytime before the trial ends.
+          - generic [ref=e95]:
+            - heading "Is there a setup fee?" [level=4] [ref=e96]
+            - paragraph [ref=e97]: No setup fees! You only pay the monthly subscription cost. We believe in transparent, simple pricing.
+          - generic [ref=e98]:
+            - heading "Can I cancel my subscription anytime?" [level=4] [ref=e99]
+            - paragraph [ref=e100]: Yes, you can cancel your Pro subscription at any time. You'll continue to have access until the end of your billing period.
+          - generic [ref=e101]:
+            - heading "What happens to my data if I modify my subscription?" [level=4] [ref=e102]
+            - paragraph [ref=e103]: Your data is always safe. When you downgrade, you'll lose access to Pro features but all your feedback and analysis remains intact.
+          - generic [ref=e104]:
+            - heading "Do you offer team discounts?" [level=4] [ref=e105]
+            - paragraph [ref=e106]: For teams of 5+ users, we offer custom pricing. Contact us to discuss your needs and get a personalized quote.
+      - generic [ref=e107]:
+        - heading "Ready to get started?" [level=3] [ref=e108]
+        - paragraph [ref=e109]: Join thousands of teams using SignalNote to improve their products
+        - generic [ref=e110]:
+          - button "Start Your Trial" [ref=e111] [cursor=pointer]:
+            - link "Start Your Trial" [ref=e112] [cursor=pointer]:
+              - /url: /login
+          - button "Join Waitlist" [ref=e113] [cursor=pointer]:
+            - link "Join Waitlist" [ref=e114] [cursor=pointer]:
+              - /url: /waitlist
+  - alert [ref=e115]
+```

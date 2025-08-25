@@ -1,0 +1,16 @@
+text,source,user_segment,product_area,created_at
+"The dashboard loads too slowly when we have large datasets. It takes over 30 seconds to load our quarterly reports.",email,enterprise,dashboard,2024-01-15T10:30:00Z
+"Love the new search feature! It finds exactly what I need in seconds. This saves me hours every week.",in-app,pro,search,2024-01-15T11:15:00Z
+"Mobile app crashes when uploading files larger than 10MB. This is blocking our field team from submitting reports.",support,free,mobile,2024-01-15T14:20:00Z
+"Need Excel export functionality for our reports. Currently we can only get CSV which doesn't preserve formatting.",feedback_form,enterprise,reporting,2024-01-15T16:45:00Z
+"Please add dark mode theme. Working late hours is hard on the eyes with the bright interface.",twitter,pro,ui,2024-01-15T18:30:00Z
+"API documentation is confusing and lacks examples. Spent 3 hours trying to figure out authentication.",email,startup,api,2024-01-16T09:15:00Z
+"Fantastic customer support! The team responded within 2 hours and solved our integration issue perfectly.",chat,startup,support,2024-01-16T14:22:00Z
+"Bulk actions would save us so much time. Currently we have to update records one by one which is tedious.",feedback_form,pro,dashboard,2024-01-17T11:30:00Z
+"The new onboarding flow is much clearer. New team members can get started in minutes instead of hours.",email,enterprise,onboarding,2024-01-17T15:45:00Z
+"Need better filtering options in the analytics section. Can't slice data by custom date ranges.",in-app,pro,analytics,2024-01-18T10:12:00Z
+"Love the real-time collaboration features! Multiple team members can work on the same project seamlessly.",slack,startup,collaboration,2024-01-18T16:20:00Z
+"Security audit found some issues with data encryption. Need to address this for compliance requirements.",email,enterprise,security,2024-01-19T08:45:00Z
+"The pricing is fair for what we get. Much better value than competitors with similar features.",survey,startup,pricing,2024-01-19T13:30:00Z
+"Integration with Salesforce would be huge for us. Currently we're doing manual data sync which is error-prone.",feedback_form,enterprise,integrations,2024-01-20T09:15:00Z
+"The mobile app UI is intuitive but could use better offline capabilities for field work.",app_store,pro,mobile,2024-01-20T14:50:00Z

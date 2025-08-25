@@ -1,0 +1,58 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link "SignalNote" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - link "🚀 Demo" [ref=e7] [cursor=pointer]:
+          - /url: /demo
+        - link "👀 Code" [ref=e8] [cursor=pointer]:
+          - /url: https://github.com/JaiBhatia19/signal_note
+      - link "Try Demo" [ref=e10] [cursor=pointer]:
+        - /url: /demo
+        - button "Try Demo" [ref=e11] [cursor=pointer]
+  - main [ref=e12]:
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - heading "Search Feedback" [level=1] [ref=e17]
+        - paragraph [ref=e18]: Find relevant insights using natural language queries and advanced filters.
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - textbox "Search your feedback" [ref=e23]
+          - button "Search" [disabled]
+        - button "Hide Filters" [active] [ref=e25] [cursor=pointer]:
+          - img [ref=e26] [cursor=pointer]
+          - text: Hide Filters
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: Source
+            - textbox "Email, Survey..." [ref=e33]
+          - generic [ref=e34]:
+            - generic [ref=e35]: User Segment
+            - textbox "Enterprise, SMB..." [ref=e37]
+          - generic [ref=e38]:
+            - generic [ref=e39]: Product Area
+            - textbox "UI, API, Mobile..." [ref=e41]
+          - generic [ref=e42]:
+            - generic [ref=e43]: From Date
+            - textbox [ref=e45]
+          - generic [ref=e46]:
+            - generic [ref=e47]: To Date
+            - textbox [ref=e49]
+      - generic [ref=e51]:
+        - heading "💡 Search Tips" [level=3] [ref=e52]
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - heading "Natural Language" [level=4] [ref=e55]
+            - paragraph [ref=e56]: Try searching for specific features, bugs, or user segments
+          - generic [ref=e57]:
+            - heading "Specific Terms" [level=4] [ref=e58]
+            - paragraph [ref=e59]: Use phrases like "user interface issues" or "mobile app problems"
+          - generic [ref=e60]:
+            - heading "Combine Filters" [level=4] [ref=e61]
+            - paragraph [ref=e62]: Use source, user segment, and date filters for precise results
+  - alert [ref=e63]
+```

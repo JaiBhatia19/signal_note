@@ -1,0 +1,118 @@
+[
+  {
+    "id": "cluster-1",
+    "title": "Performance Issues",
+    "description": "Users experiencing slow loading times and performance bottlenecks, particularly with large datasets and dashboard functionality.",
+    "theme": "Performance",
+    "sentiment_trend": "negative",
+    "urgency_level": "high",
+    "affected_segments": ["enterprise", "pro"],
+    "affected_areas": ["dashboard", "analytics"],
+    "business_impact": "high",
+    "priority": 1,
+    "feedback_count": 3,
+    "avg_sentiment": 0.35,
+    "indices": [0, 7, 9],
+    "example_quotes": [
+      "The dashboard loads too slowly when we have large datasets",
+      "Bulk actions would save us so much time",
+      "Need better filtering options in the analytics section"
+    ]
+  },
+  {
+    "id": "cluster-2", 
+    "title": "Mobile App Stability",
+    "description": "Critical issues with mobile app crashes and missing features that block field team productivity.",
+    "theme": "Mobile",
+    "sentiment_trend": "negative",
+    "urgency_level": "critical",
+    "affected_segments": ["free", "pro"],
+    "affected_areas": ["mobile"],
+    "business_impact": "high",
+    "priority": 1,
+    "feedback_count": 2,
+    "avg_sentiment": 0.45,
+    "indices": [2, 14],
+    "example_quotes": [
+      "Mobile app crashes when uploading files larger than 10MB",
+      "The mobile app UI is intuitive but could use better offline capabilities"
+    ]
+  },
+  {
+    "id": "cluster-3",
+    "title": "Positive User Experience", 
+    "description": "Users praising new features, search functionality, and overall product experience with high satisfaction.",
+    "theme": "UX",
+    "sentiment_trend": "positive",
+    "urgency_level": "low",
+    "affected_segments": ["pro", "startup"],
+    "affected_areas": ["search", "onboarding", "collaboration"],
+    "business_impact": "medium",
+    "priority": 4,
+    "feedback_count": 4,
+    "avg_sentiment": 0.92,
+    "indices": [1, 6, 8, 10],
+    "example_quotes": [
+      "Love the new search feature! It finds exactly what I need in seconds",
+      "Fantastic customer support! The team responded within 2 hours",
+      "The new onboarding flow is much clearer",
+      "Love the real-time collaboration features!"
+    ]
+  },
+  {
+    "id": "cluster-4",
+    "title": "Integration & API Needs",
+    "description": "Requests for better integrations, API improvements, and enterprise-level connectivity features.",
+    "theme": "Integrations", 
+    "sentiment_trend": "mixed",
+    "urgency_level": "medium",
+    "affected_segments": ["enterprise", "startup"],
+    "affected_areas": ["api", "integrations"],
+    "business_impact": "high",
+    "priority": 2,
+    "feedback_count": 2,
+    "avg_sentiment": 0.55,
+    "indices": [5, 13],
+    "example_quotes": [
+      "API documentation is confusing and lacks examples",
+      "Integration with Salesforce would be huge for us"
+    ]
+  },
+  {
+    "id": "cluster-5",
+    "title": "Security & Compliance",
+    "description": "Critical security concerns and compliance requirements that need immediate attention for enterprise clients.",
+    "theme": "Security",
+    "sentiment_trend": "negative", 
+    "urgency_level": "critical",
+    "affected_segments": ["enterprise"],
+    "affected_areas": ["security"],
+    "business_impact": "high",
+    "priority": 1,
+    "feedback_count": 1,
+    "avg_sentiment": 0.30,
+    "indices": [11],
+    "example_quotes": [
+      "Security audit found some issues with data encryption"
+    ]
+  },
+  {
+    "id": "cluster-6",
+    "title": "Feature Enhancement Requests",
+    "description": "Users requesting UI improvements and new features like dark mode, Excel export, and better customization options.",
+    "theme": "Features",
+    "sentiment_trend": "mixed",
+    "urgency_level": "low",
+    "affected_segments": ["pro", "enterprise"],
+    "affected_areas": ["ui", "reporting"],
+    "business_impact": "medium",
+    "priority": 3,
+    "feedback_count": 2,
+    "avg_sentiment": 0.65,
+    "indices": [3, 4],
+    "example_quotes": [
+      "Need Excel export functionality for our reports",
+      "Please add dark mode theme"
+    ]
+  }
+]

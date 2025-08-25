@@ -1,0 +1,75 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link "SignalNote" [ref=e6]:
+          - /url: /
+        - link "🚀 Demo" [ref=e7]:
+          - /url: /demo
+        - link "👀 Code" [ref=e8]:
+          - /url: https://github.com/JaiBhatia19/signal_note
+      - link "Try Demo" [ref=e10]:
+        - /url: /demo
+        - button "Try Demo" [ref=e11] [cursor=pointer]
+  - main [ref=e12]:
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - heading "AI-Powered Insights" [level=1] [ref=e17]
+        - paragraph [ref=e18]: Discover patterns and actionable insights from your customer feedback.
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - heading "Rebuild Clusters" [level=2] [ref=e22]
+          - paragraph [ref=e23]: Generate new insights by rebuilding your feedback clusters with AI.
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]: "Clusters:"
+            - combobox "Clusters:" [ref=e27]:
+              - option "3"
+              - option "5" [selected]
+              - option "7"
+              - option "10"
+          - button "Rebuild Clusters" [ref=e28] [cursor=pointer]
+      - generic [ref=e29]:
+        - img [ref=e31]
+        - heading "No insights yet" [level=3] [ref=e33]
+        - paragraph [ref=e34]: You need at least 5 feedback items to generate AI-powered insights.
+        - generic [ref=e35]:
+          - link "Add Feedback" [ref=e36]:
+            - /url: /ingest
+            - button "Add Feedback" [ref=e37] [cursor=pointer]
+          - button "Try Rebuilding" [ref=e38] [cursor=pointer]
+      - generic [ref=e40]:
+        - heading "🔍 How AI Insights Work" [level=3] [ref=e41]
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - heading "Pattern Recognition" [level=4] [ref=e44]
+            - paragraph [ref=e45]: Our AI analyzes your feedback to identify recurring themes and patterns
+          - generic [ref=e46]:
+            - heading "Smart Clustering" [level=4] [ref=e47]
+            - paragraph [ref=e48]: Similar feedback is grouped together using semantic similarity and k-means clustering
+          - generic [ref=e49]:
+            - heading "Actionable Output" [level=4] [ref=e50]
+            - paragraph [ref=e51]: Each cluster generates a feature request and specific action items for your team
+      - generic [ref=e53]:
+        - heading "💡 Tips for Better Insights" [level=3] [ref=e54]
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - heading "Add More Feedback" [level=4] [ref=e57]
+            - paragraph [ref=e58]: More data leads to more accurate clustering and better insights
+          - generic [ref=e59]:
+            - heading "Experiment with Cluster Count" [level=4] [ref=e60]
+            - paragraph [ref=e61]: Try different numbers of clusters to find the optimal balance
+          - generic [ref=e62]:
+            - heading "Regular Updates" [level=4] [ref=e63]
+            - paragraph [ref=e64]: Rebuild clusters periodically as you add new feedback
+          - generic [ref=e65]:
+            - heading "Review and Act" [level=4] [ref=e66]
+            - paragraph [ref=e67]: Use the generated insights to prioritize your product roadmap
+      - link "Back to Dashboard" [ref=e69]:
+        - /url: /dashboard
+        - button "Back to Dashboard" [ref=e70] [cursor=pointer]
+  - alert [ref=e71]
+```

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-export const runtime = "nodejs";
-
+import { isDemoMode } from '@/lib/env';
+import { simulateDelay } from '@/lib/demo';
 import { supabaseServer } from '@/lib/supabase/server';
+
+export const runtime = "nodejs";
 
 // Temporary in-memory storage as fallback
 let tempWaitlist: { email: string; ref_code?: string; created_at: Date }[] = [];
@@ -12,6 +14,16 @@ export async function POST(request: NextRequest) {
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+
+    // In demo mode, simulate successful waitlist addition
+    if (isDemoMode()) {
+      await simulateDelay(1000);
+      return NextResponse.json({ 
+        message: 'Demo: Added to waitlist successfully!',
+        total: 147, // Fake count for demo
+        demo: true
+      });
     }
 
     // Try to use database first

@@ -17,16 +17,16 @@ export default function HomePage() {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Link href="/demo">
-            <Button size="lg" className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700">
-              🚀 Try It Live - No Signup Required
+          <Link href="/ingest">
+            <Button size="lg" className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700" data-testid="hero-try-demo">
+              🚀 Try Demo - No Signup Required
             </Button>
           </Link>
-          <a href="https://github.com/JaiBhatia19/signal_note" target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" size="lg" className="text-lg px-8 py-4">
-              👀 View Code
+          <Link href="/pricing">
+            <Button variant="outline" size="lg" className="text-lg px-8 py-4" data-testid="hero-view-pricing">
+              💰 View Pricing
             </Button>
-          </a>
+          </Link>
         </div>
 
         {/* What You Can Do */}
@@ -145,8 +145,8 @@ export default function HomePage() {
         <div className="p-8 bg-blue-50 rounded-lg border border-blue-200">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Ready to see it in action?</h2>
           <p className="text-gray-600 mb-6">Try the demo now - no signup required. See how AI can transform your feedback analysis.</p>
-          <Link href="/demo">
-            <Button size="lg" className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700">
+          <Link href="/ingest">
+            <Button size="lg" className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700" data-testid="footer-launch-demo">
               🚀 Launch Demo
             </Button>
           </Link>

@@ -1,26 +1,38 @@
 import { NextResponse } from 'next/server';
+import { isDemoMode } from '@/lib/env';
+import { supabaseServer } from '@/lib/supabase/server';
+
 export const runtime = "nodejs";
 
-import { getServerEnv } from '@/lib/env';
-
 export async function GET() {
-  try {
-    const env = getServerEnv();
-    const healthStatus = {
-      ok: true,
-      timestamp: new Date().toISOString(),
-      envs: Object.keys(env).filter(key => env[key as keyof typeof env]),
-      services: {
-        supabase: 'configured',
-        openai: env.OPENAI_API_KEY ? 'configured' : 'not_configured',
-      }
-    };
+  const health = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    demo: isDemoMode(),
+    services: {
+      supabase: 'unknown',
+      openai: 'unknown'
+    }
+  };
 
-    return NextResponse.json(healthStatus);
+  try {
+    // Check Supabase connection
+    if (!isDemoMode()) {
+      const supabase = supabaseServer();
+      const { error } = await supabase.from('feedback').select('id').limit(1);
+      health.services.supabase = error ? 'error' : 'ok';
+    } else {
+      health.services.supabase = 'demo_mode';
+    }
+
+    // Check OpenAI API key
+    health.services.openai = process.env.OPENAI_API_KEY ? 'ok' : 'not_configured';
+
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Health check failed', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
+    console.error('Health check error:', error);
+    health.status = 'degraded';
   }
-} 
+
+  const statusCode = health.status === 'ok' ? 200 : 503;
+  return NextResponse.json(health, { status: statusCode });
+}

@@ -1,0 +1,53 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link "SignalNote" [ref=e6]:
+          - /url: /
+        - link "🚀 Demo" [ref=e7]:
+          - /url: /demo
+        - link "👀 Code" [ref=e8]:
+          - /url: https://github.com/JaiBhatia19/signal_note
+      - link "Try Demo" [ref=e10]:
+        - /url: /demo
+        - button "Try Demo" [ref=e11] [cursor=pointer]
+  - main [ref=e12]:
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - heading "Add Customer Feedback" [level=1] [ref=e17]
+        - paragraph [ref=e18]: Collect and analyze customer feedback to uncover insights and improve your product.
+      - generic [ref=e20]:
+        - button "Manual Entry" [ref=e21] [cursor=pointer]
+        - button "CSV Upload" [ref=e22] [cursor=pointer]
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]: Feedback Text *
+          - textbox "Feedback Text *" [ref=e28]
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: Source
+            - textbox "Source" [ref=e33]
+          - generic [ref=e34]:
+            - generic [ref=e35]: User Segment
+            - textbox "User Segment" [ref=e37]
+          - generic [ref=e38]:
+            - generic [ref=e39]: Product Area
+            - textbox "Product Area" [ref=e41]
+        - button "Submit Feedback" [disabled]
+      - generic [ref=e44]:
+        - heading "Need Help?" [level=3] [ref=e45]
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - heading "Manual Entry" [level=4] [ref=e48]
+            - paragraph [ref=e49]: Perfect for individual feedback items, interview notes, or quick insights.
+          - generic [ref=e50]:
+            - heading "CSV Upload" [level=4] [ref=e51]
+            - paragraph [ref=e52]: Great for bulk imports from surveys, support tickets, or existing feedback systems.
+        - link "Back to Dashboard" [ref=e54]:
+          - /url: /dashboard
+          - button "Back to Dashboard" [ref=e55] [cursor=pointer]
+  - alert [ref=e56]
+```

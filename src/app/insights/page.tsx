@@ -5,16 +5,23 @@ import Link from 'next/link';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import Badge from '@/components/Badge';
+import Container from '@/components/Container';
 
 interface Cluster {
-  id: number;
-  label: string;
-  size: number;
+  id: string;
+  title: string;
+  description: string;
+  theme: string;
+  sentiment_trend: string;
+  urgency_level: string;
+  affected_segments: string[];
+  affected_areas: string[];
+  business_impact: string;
+  priority: number;
+  feedback_count: number;
   avg_sentiment: number;
-  avg_urgency: number;
-  feature_request: string;
-  action_items: string;
-  created_at: string;
+  indices: number[];
+  example_quotes: string[];
 }
 
 export default function InsightsPage() {
@@ -77,6 +84,21 @@ export default function InsightsPage() {
     return 'text-green-600';
   };
 
+  const getUrgencyBadgeColor = (level: string) => {
+    switch (level) {
+      case 'critical':
+        return 'text-red-600';
+      case 'high':
+        return 'text-red-600';
+      case 'medium':
+        return 'text-orange-600';
+      case 'low':
+        return 'text-green-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
+
   const formatPercentage = (score: number) => {
     return Math.round(score * 100);
   };
@@ -93,8 +115,8 @@ export default function InsightsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <Container>
+      <div className="py-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             AI-Powered Insights
@@ -136,6 +158,7 @@ export default function InsightsPage() {
                 onClick={handleRebuildClusters}
                 disabled={isRebuilding}
                 className="whitespace-nowrap"
+                data-testid="rebuild-clusters-button"
               >
                 {isRebuilding ? 'Rebuilding...' : 'Rebuild Clusters'}
               </Button>
@@ -146,23 +169,31 @@ export default function InsightsPage() {
         {/* Clusters Grid */}
         {clusters.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {clusters.map((cluster) => (
-              <Card key={cluster.id} className="p-6">
+            {clusters.map((cluster, index) => (
+              <Card key={cluster.id} className="p-6" data-testid={`cluster-card-${index}`}>
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                      {cluster.label}
+                      {cluster.title}
                     </h3>
                     <div className="flex items-center gap-2 mb-3">
                       <Badge variant="default" className="text-xs">
-                        {cluster.size} items
+                        {cluster.feedback_count} items
                       </Badge>
-                      <span className="text-xs text-gray-500">
-                        {new Date(cluster.created_at).toLocaleDateString()}
-                      </span>
+                      <Badge 
+                        variant={cluster.priority <= 2 ? 'error' : 'warning'} 
+                        className="text-xs"
+                      >
+                        P{cluster.priority}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {cluster.theme}
+                      </Badge>
                     </div>
                   </div>
                 </div>
+
+                <p className="text-sm text-gray-600 mb-4">{cluster.description}</p>
 
                 {/* Metrics */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
@@ -173,27 +204,35 @@ export default function InsightsPage() {
                     <div className="text-xs text-gray-600">Sentiment</div>
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <div className={`text-lg font-semibold ${getUrgencyColor(cluster.avg_urgency)}`}>
-                      {formatPercentage(cluster.avg_urgency)}%
+                    <div className={`text-sm font-semibold ${getUrgencyBadgeColor(cluster.urgency_level)}`}>
+                      {cluster.urgency_level}
                     </div>
                     <div className="text-xs text-gray-600">Urgency</div>
                   </div>
                 </div>
 
-                {/* Feature Request */}
+                {/* Affected Areas */}
                 <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Suggested Feature</h4>
-                  <p className="text-sm text-gray-700 bg-blue-50 p-3 rounded-lg">
-                    {cluster.feature_request}
-                  </p>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Affected Areas</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {cluster.affected_areas.map((area) => (
+                      <span key={area} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        {area}
+                      </span>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Action Items */}
+                {/* Example Quotes */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Action Items</h4>
-                  <p className="text-sm text-gray-700 bg-green-50 p-3 rounded-lg">
-                    {cluster.action_items}
-                  </p>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Example Feedback</h4>
+                  <div className="space-y-2">
+                    {cluster.example_quotes.slice(0, 2).map((quote, index) => (
+                      <p key={index} className="text-xs text-gray-700 bg-gray-50 p-2 rounded italic">
+                        "{quote}"
+                      </p>
+                    ))}
+                  </div>
                 </div>
               </Card>
             ))}
@@ -275,13 +314,13 @@ export default function InsightsPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <Link href="/dashboard">
-            <Button variant="outline">
-              Back to Dashboard
+          <Link href="/ingest">
+            <Button variant="outline" data-testid="back-to-ingest">
+              Add More Feedback
             </Button>
           </Link>
         </div>
       </div>
-    </div>
+    </Container>
   );
 } 

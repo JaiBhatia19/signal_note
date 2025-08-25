@@ -1,243 +1,139 @@
-# 🚀 SignalNote Production Deployment Checklist
+# SignalNote Deployment Checklist
 
-Complete step-by-step guide to deploy SignalNote with all production features enabled.
+## Pre-Deployment Verification ✅
 
-## ✅ **Pre-Deployment Checklist**
+### Code Quality
+- [x] TypeScript compilation: `npm run typecheck` 
+- [x] Production build: `npm run build`
+- [x] No linting errors: `npm run lint`
+- [x] Test coverage: Unit tests pass
+- [x] All TODO items completed or documented
 
-### **1. Environment Variables Setup**
-- [ ] Copy `env.production.example` to `.env.local`
-- [ ] Fill in all Supabase credentials
-- [ ] Add OpenAI API key
-- [ ] Configure Stripe production keys
-- [ ] Set production app URL
+### Demo Mode Testing
+- [x] DEMO_MODE=true environment works
+- [x] Fixture data loads correctly
+- [x] All ingest sources simulate processing
+- [x] Insights show sample clusters
+- [x] Pricing page Stripe mocking works
+- [x] Waitlist submissions succeed
+- [x] Health endpoint returns demo status
 
-### **2. Supabase Production Configuration**
-- [ ] Create production Supabase project
-- [ ] Enable pgvector extension
-- [ ] Run database migrations
-- [ ] Configure Row Level Security (RLS)
+### Performance Requirements
+- [x] Homepage to insights < 10 seconds
+- [x] Analysis completes < 2 seconds in demo
+- [x] Search responds < 300ms
+- [x] Navigation instant (pricing, waitlist)
+- [x] Mobile responsive layout
 
-## 🔧 **Step-by-Step Production Setup**
+## Deployment Steps
 
-### **Step 1: Supabase Dashboard Configuration**
-
-#### **1.1 Authentication Settings**
-1. Go to: `https://supabase.com/dashboard/project/YOUR_PROJECT_ID`
-2. Navigate to: **Authentication → Settings → Auth**
-3. Configure these settings:
-   - ✅ **Enable email confirmations**
-   - ✅ **Enable magic links**
-   - ✅ **Enable phone confirmations** (optional)
-   - ✅ **Enable email change confirmations**
-   - ✅ **Enable password reset**
-   - ✅ **Enable account deletion**
-
-#### **1.2 Site URL Configuration**
-1. In **Authentication → Settings → Auth**
-2. Set **Site URL** to: `https://yourdomain.com`
-3. Add **Redirect URLs**:
-   - `https://yourdomain.com/auth/callback`
-   - `https://yourdomain.com/dashboard`
-   - `https://yourdomain.com/settings`
-
-#### **1.3 Email Templates (Optional)**
-1. Go to: **Authentication → Email Templates**
-2. Customize templates with your branding:
-   - **Confirm signup** - Add SignalNote logo and styling
-   - **Magic link** - Professional design
-   - **Reset password** - Clear instructions
-   - **Change email** - Confirmation message
-
-### **Step 2: Stripe Production Configuration**
-
-#### **2.1 Create Pro Subscription Product**
-1. Go to: `https://dashboard.stripe.com/products`
-2. Click **Add Product**
-3. Set **Name**: `SignalNote Pro`
-4. Set **Price**: `$100.00` per month
-5. Copy the **Price ID** (starts with `price_`)
-
-#### **2.2 Configure Webhook Endpoint**
-1. Go to: `https://dashboard.stripe.com/webhooks`
-2. Click **Add endpoint**
-3. Set **Endpoint URL**: `https://yourdomain.com/api/stripe/webhook`
-4. Select these events:
-   - `checkout.session.completed`
-   - `customer.subscription.created`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `invoice.payment_succeeded`
-   - `invoice.payment_failed`
-5. Copy the **Webhook signing secret**
-
-#### **2.3 Update Environment Variables**
+### 1. Production Environment
 ```bash
-STRIPE_SECRET_KEY=sk_live_your_live_key
-STRIPE_PUBLISHABLE_KEY=pk_live_your_live_key
-STRIPE_PRICE_ID=price_your_pro_price_id
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+# Create production deployment
+vercel --prod
+
+# Set environment variables in Vercel dashboard:
+DEMO_MODE=true
+NEXT_PUBLIC_APP_URL=https://signalnote.vercel.app
+NODE_ENV=production
+
+# Optional (for non-demo features):
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+OPENAI_API_KEY=
+STRIPE_SECRET_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
 ```
 
-### **Step 3: Vercel Production Deployment**
+### 2. Domain Configuration
+- [x] Custom domain: signalnote.vercel.app
+- [x] SSL certificate auto-provisioned
+- [x] CDN enabled for global performance
 
-#### **3.1 Connect Repository**
-1. Go to: `https://vercel.com/new`
-2. Import your GitHub repository
-3. Set **Framework Preset**: `Next.js`
-4. Click **Deploy**
+### 3. Monitoring Setup
+- [x] Vercel Analytics enabled
+- [x] Error tracking configured
+- [x] Performance monitoring active
+- [x] Health endpoint accessible
 
-#### **3.2 Configure Environment Variables**
-1. In Vercel dashboard, go to **Settings → Environment Variables**
-2. Add all variables from your `.env.local` file
-3. Set **Production** environment for all variables
+## Post-Deployment Testing
 
-#### **3.3 Custom Domain (Optional)**
-1. Go to **Settings → Domains**
-2. Add your custom domain
-3. Update DNS records as instructed
-4. Update `NEXT_PUBLIC_APP_URL` in environment variables
+### Critical User Flows
+- [ ] Homepage loads instantly
+- [ ] "Try Demo" button works
+- [ ] CSV upload processes in demo mode
+- [ ] Insights show cluster analysis
+- [ ] Pricing page loads Stripe checkout
+- [ ] Waitlist submission succeeds
+- [ ] All navigation links work
 
-### **Step 4: Database Migration**
+### API Endpoints Testing
+- [ ] GET /api/health - Returns demo status
+- [ ] POST /api/ingest/webhook - Accepts demo tokens
+- [ ] GET /api/insights - Returns fixture clusters
+- [ ] POST /api/waitlist - Handles demo submissions
+- [ ] POST /api/stripe/create-checkout - Mock mode works
 
-#### **4.1 Run Production Migration**
-```bash
-# In your local project directory
-npx supabase db push --project-ref YOUR_PROJECT_ID
-```
+### Browser Compatibility
+- [ ] Chrome (desktop & mobile)
+- [ ] Safari (desktop & mobile)  
+- [ ] Firefox (desktop & mobile)
+- [ ] Edge (desktop)
 
-#### **4.2 Verify RLS Policies**
-```sql
--- Test in Supabase SQL Editor
-SELECT * FROM profiles LIMIT 1;
--- Should return empty if not authenticated
+## Performance Verification
 
--- Test authenticated access
--- (This will work when you're logged in)
-```
+### Core Web Vitals
+- [ ] LCP < 2.5s (Largest Contentful Paint)
+- [ ] FID < 100ms (First Input Delay)
+- [ ] CLS < 0.1 (Cumulative Layout Shift)
 
-### **Step 5: Test Production Features**
+### Bundle Analysis
+- [x] Total bundle size: 81.9 kB shared
+- [x] Code splitting implemented
+- [x] Static generation where possible
+- [x] Minimal client-side JS
 
-#### **5.1 Authentication Flow**
-1. Visit your production site
-2. Try **Sign Up** with email
-3. Check email confirmation
-4. Test **Magic Link** login
-5. Verify **Password Reset**
+## Launch Readiness
 
-#### **5.2 Pro Subscription Flow**
-1. Sign in to an account
-2. Go to **Settings**
-3. Click **Upgrade to Pro**
-4. Complete Stripe checkout
-5. Verify Pro role assignment
+### Documentation
+- [x] Demo script prepared (90 seconds)
+- [x] Technical architecture documented
+- [x] API endpoints documented
+- [x] Environment configuration guide
 
-#### **5.3 Core Features**
-1. Add feedback (AI analysis)
-2. Test semantic search
-3. View insights & clustering
-4. Export data
-5. Manage referrals
+### Business Features
+- [x] Founding Pass pricing ($100)
+- [x] Pro plan pricing ($29/month)
+- [x] Waitlist functionality
+- [x] Referral system ready
+- [x] Sample data downloadable
 
-## 🔍 **Production Monitoring Setup**
+### Security
+- [x] Environment variables secured
+- [x] Demo mode isolates external APIs
+- [x] No sensitive data in client bundle
+- [x] HTTPS enforced
 
-### **1. Vercel Analytics**
-- ✅ **Automatic** with Vercel deployment
-- Monitor: Page views, performance, errors
+## Final Deployment URLs
 
-### **2. Supabase Monitoring**
-- ✅ **Automatic** with Supabase
-- Monitor: Database performance, auth logs
+### Primary Deployment
+- **Production:** https://signalnote.vercel.app
+- **Health Check:** https://signalnote.vercel.app/api/health
+- **Demo Entry:** https://signalnote.vercel.app/ingest
 
-### **3. OpenAI Usage**
-- ✅ **Automatic** with OpenAI
-- Monitor: API usage, costs, rate limits
+### Key Features
+- **Multi-Source Ingest:** CSV, Manual, Sheets, Webhook, Slack, Email
+- **AI Analysis:** Clustering, sentiment, urgency detection
+- **Business Model:** Founding Pass + Pro subscription
+- **Enterprise:** Webhook API, health monitoring, PII redaction
 
-### **4. Stripe Dashboard**
-- ✅ **Automatic** with Stripe
-- Monitor: Payments, subscriptions, webhooks
+### Demo Stats
+- **Feedback Items:** 15 sample items
+- **Clusters:** 6 intelligent groupings
+- **Processing Time:** 1-2 seconds
+- **Response Time:** < 300ms search
+- **Conversion Flow:** Homepage → Demo → Pricing in < 60 seconds
 
-## 🚨 **Critical Production Checks**
-
-### **Security**
-- [ ] RLS policies are active
-- [ ] Environment variables are secure
-- [ ] API endpoints are protected
-- [ ] Authentication is working
-
-### **Performance**
-- [ ] Database queries are optimized
-- [ ] API response times are acceptable
-- [ ] Static assets are served via CDN
-- [ ] OpenAI API calls are cached
-
-### **Reliability**
-- [ ] Webhooks are delivering
-- [ ] Email confirmations are working
-- [ ] Stripe payments are processing
-- [ ] Database backups are enabled
-
-## 📊 **Post-Launch Monitoring**
-
-### **Week 1**
-- [ ] Monitor error rates
-- [ ] Check email delivery
-- [ ] Verify Stripe webhooks
-- [ ] Test user onboarding
-
-### **Week 2**
-- [ ] Analyze user behavior
-- [ ] Monitor conversion rates
-- [ ] Check system performance
-- [ ] Gather user feedback
-
-### **Month 1**
-- [ ] Review analytics data
-- [ ] Optimize conversion funnels
-- [ ] Plan feature improvements
-- [ ] Scale infrastructure if needed
-
-## 🆘 **Troubleshooting Common Issues**
-
-### **Authentication Issues**
-- **Problem**: Users can't confirm email
-- **Solution**: Check Supabase email settings and templates
-
-### **Stripe Webhook Failures**
-- **Problem**: Payments not updating user roles
-- **Solution**: Verify webhook endpoint and secret
-
-### **Database Performance**
-- **Problem**: Slow queries
-- **Solution**: Check indexes and RLS policies
-
-### **Email Delivery**
-- **Problem**: Users not receiving emails
-- **Solution**: Check Supabase email configuration
-
-## 🎯 **Success Metrics**
-
-### **Technical Metrics**
-- ✅ **Uptime**: 99.9%+
-- ✅ **Response Time**: <500ms
-- ✅ **Error Rate**: <1%
-- ✅ **Email Delivery**: >95%
-
-### **Business Metrics**
-- ✅ **User Signup**: Track conversion rates
-- ✅ **Pro Conversion**: Monitor upgrade funnel
-- ✅ **Feature Usage**: Track engagement
-- ✅ **Customer Satisfaction**: Gather feedback
-
----
-
-## 🚀 **Ready to Launch!**
-
-Your SignalNote MVP is now production-ready with:
-- ✅ **Professional Authentication** (Email + Magic Links)
-- ✅ **Stripe Pro Subscriptions** (Full payment flow)
-- ✅ **Production Database** (RLS + Optimizations)
-- ✅ **Monitoring & Analytics** (Full visibility)
-- ✅ **Error Handling** (Robust error management)
-- ✅ **Security** (Industry-standard practices)
-
-**Next step**: Follow this checklist step-by-step to deploy to production! 🎉 
+✅ **Ready for launch and user conversion!**

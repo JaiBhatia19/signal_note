@@ -1,0 +1,98 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link "SignalNote" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - link "🚀 Demo" [ref=e7] [cursor=pointer]:
+          - /url: /demo
+        - link "👀 Code" [ref=e8] [cursor=pointer]:
+          - /url: https://github.com/JaiBhatia19/signal_note
+      - link "Try Demo" [ref=e10] [cursor=pointer]:
+        - /url: /demo
+        - button "Try Demo" [ref=e11] [cursor=pointer]
+  - main [ref=e12]:
+    - generic [ref=e15]:
+      - heading "Turn Customer Feedback Into Actionable Insights" [level=1] [ref=e16]:
+        - text: Turn Customer Feedback Into
+        - generic [ref=e17]: Actionable Insights
+      - paragraph [ref=e18]: Upload CSV feedback → Get AI-powered analysis → Discover patterns and themes instantly
+      - generic [ref=e19]:
+        - link "🚀 Try It Live - No Signup Required" [ref=e20] [cursor=pointer]:
+          - /url: /demo
+          - button "🚀 Try It Live - No Signup Required" [ref=e21] [cursor=pointer]
+        - link "👀 View Code" [ref=e22] [cursor=pointer]:
+          - /url: https://github.com/JaiBhatia19/signal_note
+          - button "👀 View Code" [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - heading "🎯 What You Can Do Right Now" [level=3] [ref=e25]
+        - paragraph [ref=e26]: Upload any CSV with customer feedback and see AI analysis in action. No account needed.
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: 📊 Sentiment Analysis
+            - text: Get 0-100 scores for each piece of feedback
+          - generic [ref=e30]:
+            - generic [ref=e31]: 🚨 Urgency Detection
+            - text: Identify high-priority issues automatically
+          - generic [ref=e32]:
+            - generic [ref=e33]: 🏷️ Theme Discovery
+            - text: Find recurring patterns and insights
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - img [ref=e37]
+          - heading "Smart Analysis" [level=3] [ref=e39]
+          - paragraph [ref=e40]: AI-powered feedback analysis with semantic understanding
+        - generic [ref=e41]:
+          - img [ref=e43]
+          - heading "Semantic Search" [level=3] [ref=e45]
+          - paragraph [ref=e46]: Find relevant feedback instantly with natural language queries
+        - generic [ref=e47]:
+          - img [ref=e49]
+          - heading "Auto Clustering" [level=3] [ref=e51]
+          - paragraph [ref=e52]: Automatically group feedback into actionable themes
+      - generic [ref=e53]:
+        - heading "How It Works" [level=2] [ref=e54]
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - generic [ref=e57]: "1"
+            - heading "Upload CSV" [level=3] [ref=e58]
+            - paragraph [ref=e59]: Upload any CSV file with customer feedback. Just needs a "text" column.
+          - generic [ref=e60]:
+            - generic [ref=e61]: "2"
+            - heading "AI Analysis" [level=3] [ref=e62]
+            - paragraph [ref=e63]: Our AI automatically analyzes sentiment, urgency, and discovers themes.
+          - generic [ref=e64]:
+            - generic [ref=e65]: "3"
+            - heading "Export Insights" [level=3] [ref=e66]
+            - paragraph [ref=e67]: Download your analyzed results as CSV for presentations and reports.
+      - generic [ref=e68]:
+        - heading "Built With" [level=2] [ref=e69]
+        - generic [ref=e70]:
+          - generic [ref=e71]:
+            - generic [ref=e72]: ⚛️
+            - heading "Next.js 14" [level=3] [ref=e73]
+            - paragraph [ref=e74]: App Router + TypeScript
+          - generic [ref=e75]:
+            - generic [ref=e76]: 🗄️
+            - heading "Supabase" [level=3] [ref=e77]
+            - paragraph [ref=e78]: PostgreSQL + Auth
+          - generic [ref=e79]:
+            - generic [ref=e80]: 🤖
+            - heading "OpenAI" [level=3] [ref=e81]
+            - paragraph [ref=e82]: GPT-4o-mini
+          - generic [ref=e83]:
+            - generic [ref=e84]: 🎨
+            - heading "Tailwind CSS" [level=3] [ref=e85]
+            - paragraph [ref=e86]: Modern UI
+      - generic [ref=e87]:
+        - heading "Ready to see it in action?" [level=2] [ref=e88]
+        - paragraph [ref=e89]: Try the demo now - no signup required. See how AI can transform your feedback analysis.
+        - link "🚀 Launch Demo" [ref=e90] [cursor=pointer]:
+          - /url: /demo
+          - button "🚀 Launch Demo" [ref=e91] [cursor=pointer]
+        - paragraph [ref=e92]: Built in 2 weeks • Open source • No account needed
+  - alert [ref=e93]
+```

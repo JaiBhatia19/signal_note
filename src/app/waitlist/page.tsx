@@ -111,6 +111,7 @@ export default function WaitlistPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
               className="w-full"
+              data-testid="waitlist-email-input"
             />
           </div>
 
@@ -138,6 +139,7 @@ export default function WaitlistPage() {
             type="submit"
             disabled={isSubmitting}
             className="w-full"
+            data-testid="waitlist-submit-button"
           >
             {isSubmitting ? 'Joining...' : 'Join Waitlist'}
           </Button>

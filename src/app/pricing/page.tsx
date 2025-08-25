@@ -1,6 +1,7 @@
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import Container from '@/components/Container';
+import CheckoutButton from './CheckoutButton';
 
 export default function PricingPage() {
   return (
@@ -16,11 +17,28 @@ export default function PricingPage() {
           </p>
         </div>
 
+        {/* Founding Pass Highlight */}
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg p-8 mb-8 text-center">
+          <h2 className="text-3xl font-bold mb-4">🚀 Limited Time: Founding Pass</h2>
+          <p className="text-xl mb-6">Be among the first 100 users and lock in early pricing forever</p>
+          <div className="bg-white/20 rounded-lg p-4 mb-6">
+            <p className="text-2xl font-bold">$100 one-time</p>
+            <p className="text-sm opacity-90">Lifetime access • No monthly fees • All features</p>
+          </div>
+          <CheckoutButton 
+            priceId="founding-pass" 
+            className="bg-white text-purple-600 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg text-lg"
+            data-testid="founding-pass-checkout"
+          >
+            Claim Your Founding Pass
+          </CheckoutButton>
+        </div>
+
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
-          {/* Basic Plan */}
+          {/* Free Plan */}
           <Card className="p-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Basic Plan</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Free</h2>
             <p className="text-4xl font-bold text-gray-900 mb-4">$0/month</p>
             <p className="text-gray-600 mb-6">Perfect for getting started</p>
             
@@ -35,16 +53,19 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center">
                 <span className="text-green-500 mr-2">✓</span>
-                5 clusters
+                5 clusters max
               </li>
               <li className="flex items-center">
                 <span className="text-green-500 mr-2">✓</span>
-                Email support
+                CSV upload only
               </li>
             </ul>
             
-            <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-              <a href="/login" className="block w-full h-full text-center">Get Started</a>
+            <button 
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              data-testid="free-plan-button"
+            >
+              <a href="/demo" className="block w-full h-full text-center">Try Demo</a>
             </button>
           </Card>
 
@@ -53,8 +74,8 @@ export default function PricingPage() {
             <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2">
               Most Popular
             </Badge>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Pro Plan</h2>
-            <p className="text-4xl font-bold text-gray-900 mb-4">$100/month</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Pro</h2>
+            <p className="text-4xl font-bold text-gray-900 mb-4">$29/month</p>
             <p className="text-gray-600 mb-6">For growing teams</p>
             
             <ul className="text-left space-y-3 mb-8">
@@ -72,17 +93,21 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center">
                 <span className="text-green-500 mr-2">✓</span>
-                Priority support
+                Multi-source ingest
               </li>
               <li className="flex items-center">
                 <span className="text-green-500 mr-2">✓</span>
-                Custom integrations
+                Priority support
               </li>
             </ul>
             
-            <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-              <a href="/login" className="block w-full h-full text-center">Start Pro Trial</a>
-            </button>
+            <CheckoutButton 
+              priceId="pro-monthly" 
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              data-testid="pro-plan-checkout"
+            >
+              Start Pro Plan
+            </CheckoutButton>
           </Card>
         </div>
 
