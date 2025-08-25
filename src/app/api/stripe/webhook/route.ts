@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = "nodejs";
 
 import Stripe from 'stripe';
-import { env } from '@/lib/env';
+import { getServerEnv } from '@/lib/env';
 import { supabaseServer } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
+    const env = getServerEnv();
     if (!env.STRIPE_SECRET_KEY || !env.STRIPE_WEBHOOK_SECRET) {
       return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
     }

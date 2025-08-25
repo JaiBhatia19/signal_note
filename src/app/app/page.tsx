@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabaseBrowser } from '@/lib/supabase/client';
+import { supabaseBrowserClient } from '@/lib/supabase/client';
 import { useEffect } from 'react'
 import UploadTab from './UploadTab'
 import ExploreTab from './ExploreTab'
@@ -20,7 +20,7 @@ export default function AppPage() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabaseBrowser.auth.getSession()
+      const { data: { session } } = await supabaseBrowserClient.auth.getSession()
       if (!session) {
         router.push('/login')
         return

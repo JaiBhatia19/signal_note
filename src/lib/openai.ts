@@ -1,14 +1,19 @@
 import OpenAI from 'openai';
-import { env } from './env';
+import { getServerEnv } from './env';
 
 // Lazy-load OpenAI client to avoid build-time instantiation
 function getOpenAI() {
-  if (!env.OPENAI_API_KEY) {
+  try {
+    const env = getServerEnv();
+    if (!env.OPENAI_API_KEY) {
+      return null;
+    }
+    return new OpenAI({
+      apiKey: env.OPENAI_API_KEY,
+    });
+  } catch {
     return null;
   }
-  return new OpenAI({
-    apiKey: env.OPENAI_API_KEY,
-  });
 }
 
 export interface FeedbackAnalysis {

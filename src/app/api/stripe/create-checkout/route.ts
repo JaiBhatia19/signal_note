@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { stripe } from "@/lib/stripe"
+import { getStripe } from "@/lib/stripe"
 import { supabaseServer } from '@/lib/supabase/server';
 import { PUBLIC_APP_URL } from "@/lib/env";
 
@@ -25,6 +25,7 @@ export async function POST() {
       return NextResponse.json({ error: "Already a Pro user" }, { status: 400 })
     }
 
+    const stripe = getStripe();
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",

@@ -1,8 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_APP_URL, env } from './env';
+import { PUBLIC_APP_URL, getServerEnv } from './env';
 import { cookies } from 'next/headers';
 
-const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY!);
+// Lazy client creation - only when functions are called
+function getSupabaseClient() {
+  const { NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = getServerEnv();
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+  }
+  return createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+}
 
 export interface ReferralStats {
   total_referrals: number;
@@ -44,7 +51,7 @@ export function clearReferralCodeCookie(): void {
 export async function getReferralStats(userId: string): Promise<ReferralStats | null> {
   try {
     // Get user's referral code
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await getSupabaseClient()
       .from('profiles')
       .select('ref_code')
       .eq('id', userId)
@@ -55,7 +62,7 @@ export async function getReferralStats(userId: string): Promise<ReferralStats | 
     }
 
     // Count total referrals
-    const { count: totalReferrals, error: totalError } = await supabase
+    const { count: totalReferrals, error: totalError } = await getSupabaseClient()
       .from('referrals')
       .select('*', { count: 'exact', head: true })
       .eq('referrer_id', userId);
@@ -66,7 +73,7 @@ export async function getReferralStats(userId: string): Promise<ReferralStats | 
     }
 
     // Count successful referrals (users who signed up)
-    const { count: successfulReferrals, error: successError } = await supabase
+    const { count: successfulReferrals, error: successError } = await getSupabaseClient()
       .from('referrals')
       .select('*', { count: 'exact', head: true })
       .eq('referrer_id', userId)
@@ -94,7 +101,7 @@ export async function createReferral(
   referredEmail: string
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabaseClient()
       .from('referrals')
       .insert({
         referrer_id: referrerId,
@@ -120,7 +127,7 @@ export async function completeReferral(
 ): Promise<boolean> {
   try {
     // Find the referrer by code
-    const { data: referrer, error: referrerError } = await supabase
+    const { data: referrer, error: referrerError } = await getSupabaseClient()
       .from('profiles')
       .select('id')
       .eq('ref_code', referrerCode)
@@ -131,7 +138,7 @@ export async function completeReferral(
     }
 
     // Update the referral record
-    const { error: updateError } = await supabase
+    const { error: updateError } = await getSupabaseClient()
       .from('referrals')
       .update({ referred_id: newUserId })
       .eq('referrer_id', referrer.id)
@@ -144,7 +151,7 @@ export async function completeReferral(
     }
 
     // Update the new user's profile
-    const { error: profileError } = await supabase
+    const { error: profileError } = await getSupabaseClient()
       .from('profiles')
       .update({ referred_by: referrer.id })
       .eq('id', newUserId);

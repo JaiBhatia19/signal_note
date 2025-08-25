@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 export const runtime = "nodejs";
 
 import { supabaseServer } from '@/lib/supabase/server';
-import { stripe } from '@/lib/stripe';
+import { getStripe } from '@/lib/stripe';
 
 export async function GET() {
   try {
@@ -12,6 +12,8 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 })
     }
+
+    const stripe = getStripe();
 
     // Get customer's subscriptions
     const customers = await stripe.customers.list({

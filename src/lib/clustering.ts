@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { env } from './env';
+import { getServerEnv } from './env';
 
 export interface Cluster {
   id: number;
@@ -11,6 +11,7 @@ export interface Cluster {
 
 export async function createCluster(name: string, description: string, feedbackIds: number[]): Promise<Cluster | null> {
   try {
+    const env = getServerEnv();
     if (!env.SUPABASE_SERVICE_ROLE_KEY) {
       console.error('Service role key not configured');
       return null;
@@ -42,6 +43,7 @@ export async function createCluster(name: string, description: string, feedbackI
 
 export async function getClusters(): Promise<Cluster[]> {
   try {
+    const env = getServerEnv();
     if (!env.SUPABASE_SERVICE_ROLE_KEY) {
       console.error('Service role key not configured');
       return [];

@@ -1,7 +1,10 @@
 import OpenAI from "openai";
-import { env } from "../env";
+import { getServerEnv } from "@/lib/env";
 
+let _openai: OpenAI | null = null;
 export function getOpenAI() {
-  if (!env.OPENAI_API_KEY) return null;
-  return new OpenAI({ apiKey: env.OPENAI_API_KEY });
+  const { OPENAI_API_KEY } = getServerEnv();
+  if (!OPENAI_API_KEY) return null;
+  if (!_openai) _openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+  return _openai;
 } 

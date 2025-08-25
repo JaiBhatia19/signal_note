@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
-import { stripe } from '@/lib/stripe';
-import { env } from '@/lib/env';
+import { getStripe } from '@/lib/stripe';
+import { getServerEnv } from '@/lib/env';
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
+    const env = getServerEnv();
     if (!env.STRIPE_SECRET_KEY) {
       return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
     }
@@ -17,6 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Price ID required' }, { status: 400 });
     }
 
+    const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [

@@ -1,8 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_APP_URL, env } from './env';
+import { PUBLIC_APP_URL, getServerEnv } from './env';
 import { generateEmbedding } from './openai';
 
-const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY!);
+// Lazy client creation - only when functions are called
+function getSupabaseClient() {
+  const { NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = getServerEnv();
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+  }
+  return createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+}
 
 export interface SearchResult {
   id: number;
@@ -37,7 +44,7 @@ export async function searchFeedback(
     const queryEmbedding = await generateEmbedding(query);
     
     // Build the search query
-    let supabaseQuery = supabase
+    let supabaseQuery = getSupabaseClient()
       .from('feedback')
       .select(`
         id,
@@ -102,7 +109,7 @@ export async function searchFeedback(
     `;
 
     const feedbackIds = feedback.map(f => f.id);
-    const { data: results, error: similarityError } = await supabase.rpc('exec_sql', {
+    const { data: results, error: similarityError } = await getSupabaseClient().rpc('exec_sql', {
       sql: similarityQuery,
       params: [queryEmbedding, feedbackIds, limit]
     });
@@ -147,6 +154,7 @@ export async function insertEmbedding(
   embedding: number[]
 ): Promise<boolean> {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('feedback')
       .update({ embedding })
@@ -169,6 +177,7 @@ export async function getUniqueValues(
   field: 'source' | 'user_segment' | 'product_area'
 ): Promise<string[]> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('feedback')
       .select(field)

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Card from '@/components/Card'
 import Button from '@/components/Button'
 import Badge from '@/components/Badge'
-import { supabaseBrowser } from '@/lib/supabase/client';
+import { supabaseBrowserClient } from '@/lib/supabase/client';
 
 export default function SettingsForm() {
   const [isPro, setIsPro] = useState(false)
@@ -17,7 +17,7 @@ export default function SettingsForm() {
 
   useEffect(() => {
     const checkSubscription = async () => {
-      const supabase = supabaseBrowser
+      const supabase = supabaseBrowserClient
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data: profile } = await supabase
@@ -73,7 +73,7 @@ export default function SettingsForm() {
   }
 
   const handleSignOut = async () => {
-    const supabase = supabaseBrowser
+    const supabase = supabaseBrowserClient
     await supabase.auth.signOut()
     router.push('/')
   }

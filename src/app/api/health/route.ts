@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 export const runtime = "nodejs";
 
-import { env } from '@/lib/env';
+import { getServerEnv } from '@/lib/env';
 
 export async function GET() {
   try {
+    const env = getServerEnv();
     const healthStatus = {
       ok: true,
       timestamp: new Date().toISOString(),

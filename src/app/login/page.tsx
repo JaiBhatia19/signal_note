@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabaseBrowser } from '@/lib/supabase/client';
+import { supabaseBrowserClient } from '@/lib/supabase/client';
 import Button from '@/components/Button'
 import Input from '@/components/Input'
 import Card from '@/components/Card'
@@ -21,7 +21,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabaseBrowser.auth.getSession()
+      const { data: { session } } = await supabaseBrowserClient.auth.getSession()
       if (session) {
         router.push('/app')
       }
@@ -38,7 +38,7 @@ export default function LoginPage() {
     try {
       if (isPasswordReset) {
         // Send password reset email
-        const { error } = await supabaseBrowser.auth.resetPasswordForEmail(email, {
+        const { error } = await supabaseBrowserClient.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/auth/callback?next=/settings`
         })
         if (error) throw error
@@ -47,7 +47,7 @@ export default function LoginPage() {
         setIsPasswordReset(false)
       } else if (isMagicLink) {
         // Send magic link
-        const { error } = await supabaseBrowser.auth.signInWithOtp({
+        const { error } = await supabaseBrowserClient.auth.signInWithOtp({
           email,
           options: {
             emailRedirectTo: `${window.location.origin}/auth/callback`
@@ -58,7 +58,7 @@ export default function LoginPage() {
         setMessage('Magic link sent! Check your email and click the link to sign in instantly.')
         setIsMagicLink(false)
       } else if (isSignUp) {
-        const { error } = await supabaseBrowser.auth.signUp({
+        const { error } = await supabaseBrowserClient.auth.signUp({
           email,
           password,
           options: {
@@ -70,7 +70,7 @@ export default function LoginPage() {
         setMessage('Account created! Check your email for the confirmation link. You can also sign in directly.')
         setIsSignUp(false)
       } else {
-        const { data, error } = await supabaseBrowser.auth.signInWithPassword({
+        const { data, error } = await supabaseBrowserClient.auth.signInWithPassword({
           email,
           password,
         })
@@ -78,7 +78,7 @@ export default function LoginPage() {
         
         // Check if user has completed onboarding
         if (data.user) {
-          const { data: profile } = await supabaseBrowser
+          const { data: profile } = await supabaseBrowserClient
             .from('profiles')
             .select('onboarding_completed')
             .eq('id', data.user.id)
