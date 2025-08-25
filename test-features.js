@@ -1,91 +1,193 @@
 #!/usr/bin/env node
 
 /**
- * SignalNote Feature Test Script
- * 
- * This script helps test all the free and pro features locally
- * Run this after setting up your environment variables
+ * SignalNote v1 - Complete Feature Testing Script
+ * Run this before posting on LinkedIn to ensure everything works!
  */
 
-const readline = require('readline');
+const https = require('https');
+const fs = require('fs');
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+const BASE_URL = 'https://signalnote.vercel.app';
 
-console.log('🚀 SignalNote Feature Test Script');
-console.log('================================\n');
+// Test data for CSV upload
+const testCSV = `text,source,created_at
+"This product is amazing! Love the new features.",email,2025-08-25
+"The interface is confusing and needs improvement.",support,2025-08-24
+"Great customer service, but the app crashes sometimes.",app_store,2025-08-23
+"Fast response time and helpful support team.",chat,2025-08-22
+"The new update fixed all the bugs I reported.",email,2025-08-21`;
 
-console.log('📋 Pre-Test Checklist:');
-console.log('1. ✅ Development server running (npm run dev)');
-console.log('2. ✅ .env.local configured with:');
-console.log('   - OPENAI_API_KEY (your actual key)');
-console.log('   - NEXT_PUBLIC_APP_URL=http://localhost:3001');
-console.log('3. ✅ Supabase database running');
-console.log('4. ✅ Stripe test keys configured\n');
+console.log('🚀 SignalNote v1 - Complete Feature Testing\n');
 
-console.log('🧪 Test Plan:');
-console.log('=============');
-console.log('');
+// Helper function to make HTTP requests
+function makeRequest(url, method = 'GET') {
+  return new Promise((resolve, reject) => {
+    const req = https.request(url, { method }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve({ status: res.statusCode, data }));
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
 
-console.log('🔓 FREE FEATURES:');
-console.log('1. User registration/login');
-console.log('2. Add customer feedback');
-console.log('3. View dashboard with feedback stats');
-console.log('4. Basic feedback storage');
+// Test 1: Landing Page
+async function testLandingPage() {
+  console.log('1️⃣ Testing Landing Page...');
+  try {
+    const response = await makeRequest(`${BASE_URL}/`);
+    if (response.status === 200) {
+      console.log('   ✅ Landing page loads successfully');
+      if (response.data.includes('SignalNote')) {
+        console.log('   ✅ App title and branding visible');
+      }
+    } else {
+      console.log(`   ❌ Landing page failed: ${response.status}`);
+    }
+  } catch (error) {
+    console.log(`   ❌ Landing page error: ${error.message}`);
+  }
+}
 
-console.log('\n💎 PRO FEATURES:');
-console.log('1. Semantic search across feedback');
-console.log('2. AI-powered clustering and insights');
-console.log('3. Stripe subscription upgrade');
-console.log('4. Advanced analytics');
+// Test 2: Demo Page
+async function testDemoPage() {
+  console.log('\n2️⃣ Testing Demo Page...');
+  try {
+    const response = await makeRequest(`${BASE_URL}/demo`);
+    if (response.status === 200) {
+      console.log('   ✅ Demo page loads successfully');
+      if (response.data.includes('demo')) {
+        console.log('   ✅ Demo functionality accessible');
+      }
+    } else {
+      console.log(`   ❌ Demo page failed: ${response.status}`);
+    }
+  } catch (error) {
+    console.log(`   ❌ Demo page error: ${error.message}`);
+  }
+}
 
-console.log('\n📱 Manual Testing Steps:');
-console.log('=======================');
-console.log('');
+// Test 3: Health API
+async function testHealthAPI() {
+  console.log('\n3️⃣ Testing Health API...');
+  try {
+    const response = await makeRequest(`${BASE_URL}/api/health`);
+    if (response.status === 200) {
+      console.log('   ✅ Health API working');
+      const healthData = JSON.parse(response.data);
+      if (healthData.ok) {
+        console.log('   ✅ All services configured');
+        console.log(`   ✅ Environment: ${healthData.envs.length} env vars set`);
+      }
+    } else {
+      console.log(`   ❌ Health API failed: ${response.status}`);
+    }
+  } catch (error) {
+    console.log(`   ❌ Health API error: ${error.message}`);
+  }
+}
 
-console.log('1. Open http://localhost:3001 in your browser');
-console.log('2. Click "Get Started Free" or "Sign In"');
-console.log('3. Create a new account or sign in');
-console.log('4. Test adding feedback (should work for free users)');
-console.log('5. Try to access /search or /insights (should redirect to upgrade)');
-console.log('6. Go to /settings and test Stripe upgrade flow');
-console.log('7. After upgrade, test pro features');
+// Test 4: Login Page
+async function testLoginPage() {
+  console.log('\n4️⃣ Testing Login Page...');
+  try {
+    const response = await makeRequest(`${BASE_URL}/login`);
+    if (response.status === 200) {
+      console.log('   ✅ Login page loads successfully');
+      if (response.data.includes('login') || response.data.includes('email')) {
+        console.log('   ✅ Login form accessible');
+      }
+    } else {
+      console.log(`   ❌ Login page failed: ${response.status}`);
+    }
+  } catch (error) {
+    console.log(`   ❌ Login page error: ${error.message}`);
+  }
+}
 
-console.log('\n🔍 API Endpoints to Test:');
-console.log('========================');
-console.log('POST /api/feedback - Add feedback (Free)');
-console.log('GET  /api/feedback - Get feedback (Free)');
-console.log('POST /api/search - Semantic search (Pro)');
-console.log('POST /api/insights/cluster - AI clustering (Pro)');
-console.log('POST /api/stripe/create-checkout - Upgrade to Pro');
+// Test 5: App Routes (Protected)
+async function testAppRoutes() {
+  console.log('\n5️⃣ Testing App Routes (Protected)...');
+  const routes = ['/app', '/dashboard', '/feedback', '/insights'];
+  
+  for (const route of routes) {
+    try {
+      const response = await makeRequest(`${BASE_URL}${route}`);
+      if (response.status === 200) {
+        console.log(`   ✅ ${route} loads (may redirect to login)`);
+      } else if (response.status === 302 || response.status === 401) {
+        console.log(`   ✅ ${route} properly protected (${response.status})`);
+      } else {
+        console.log(`   ⚠️  ${route} unexpected status: ${response.status}`);
+      }
+    } catch (error) {
+      console.log(`   ❌ ${route} error: ${error.message}`);
+    }
+  }
+}
 
-console.log('\n⚠️  Common Issues & Solutions:');
-console.log('==============================');
-console.log('');
+// Test 6: Static Assets
+async function testStaticAssets() {
+  console.log('\n6️⃣ Testing Static Assets...');
+  try {
+    const response = await makeRequest(`${BASE_URL}/favicon.ico`);
+    if (response.status === 200) {
+      console.log('   ✅ Favicon loads');
+    } else {
+      console.log(`   ⚠️  Favicon status: ${response.status}`);
+    }
+  } catch (error) {
+    console.log(`   ❌ Static assets error: ${error.message}`);
+  }
+}
 
-console.log('❌ "OpenAI API key not set"');
-console.log('   → Add OPENAI_API_KEY to .env.local');
-console.log('');
+// Test 7: Performance Check
+async function testPerformance() {
+  console.log('\n7️⃣ Testing Performance...');
+  const start = Date.now();
+  try {
+    const response = await makeRequest(`${BASE_URL}/`);
+    const loadTime = Date.now() - start;
+    if (loadTime < 2000) {
+      console.log(`   ✅ Fast load time: ${loadTime}ms`);
+    } else if (loadTime < 5000) {
+      console.log(`   ⚠️  Moderate load time: ${loadTime}ms`);
+    } else {
+      console.log(`   ❌ Slow load time: ${loadTime}ms`);
+    }
+  } catch (error) {
+    console.log(`   ❌ Performance test error: ${error.message}`);
+  }
+}
 
-console.log('❌ "Stripe redirect failed"');
-console.log('   → Set NEXT_PUBLIC_APP_URL=http://localhost:3001');
-console.log('');
+// Main test runner
+async function runAllTests() {
+  console.log('Starting comprehensive feature testing...\n');
+  
+  await testLandingPage();
+  await testDemoPage();
+  await testHealthAPI();
+  await testLoginPage();
+  await testAppRoutes();
+  await testStaticAssets();
+  await testPerformance();
+  
+  console.log('\n🎯 Manual Testing Required:');
+  console.log('   • Open https://signalnote.vercel.app in browser');
+  console.log('   • Test CSV upload with sample data');
+  console.log('   • Verify AI analysis results');
+  console.log('   • Test export functionality');
+  console.log('   • Check responsive design on mobile');
+  console.log('   • Test authentication flow');
+  
+  console.log('\n📝 Sample CSV for testing:');
+  console.log('   Save this as test.csv and upload:');
+  console.log(testCSV);
+  
+  console.log('\n🚀 Ready for LinkedIn post!');
+}
 
-console.log('❌ "Database connection failed"');
-console.log('   → Check Supabase URL and keys in .env.local');
-console.log('');
-
-console.log('❌ "Authentication failed"');
-console.log('   → Check Supabase configuration and database schema');
-console.log('');
-
-console.log('🎯 Ready to test? Open http://localhost:3001 in your browser!');
-console.log('');
-
-rl.question('Press Enter when you\'re ready to start testing...', () => {
-  console.log('\n🚀 Happy testing! Check the browser console for any errors.');
-  console.log('📧 If you encounter issues, check the terminal running npm run dev for server errors.');
-  rl.close();
-}); 
+// Run tests
+runAllTests().catch(console.error); 

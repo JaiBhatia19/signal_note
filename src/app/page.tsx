@@ -13,35 +13,44 @@ export default function HomePage() {
           <span className="text-blue-600"> Actionable Insights</span>
         </h1>
         <p className="text-xl text-gray-600 mb-8">
-          Paste transcripts, notes, or feedback. Get AI-powered analysis, semantic search, and automated clustering to identify recurring themes and pain points.
+          Upload CSV feedback → Get AI-powered analysis → Discover patterns and themes instantly
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Link href="/login">
-            <Button size="lg" className="text-lg px-8 py-4">
-              Get Started Free
+          <Link href="/demo">
+            <Button size="lg" className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700">
+              🚀 Try It Live - No Signup Required
             </Button>
           </Link>
-          <Link href="/pricing">
+          <a href="https://github.com/JaiBhatia19/signal_note" target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="lg" className="text-lg px-8 py-4">
-              View Pricing
+              👀 View Code
             </Button>
-          </Link>
+          </a>
         </div>
 
-        {/* Waitlist CTA */}
-        <div className="bg-gray-50 rounded-lg p-8 mb-16">
+        {/* What You Can Do */}
+        <div className="bg-blue-50 rounded-lg p-8 mb-16 border border-blue-200">
           <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-            Join the Waitlist for Early Access
+            🎯 What You Can Do Right Now
           </h3>
           <p className="text-gray-600 mb-6">
-            Be among the first to transform your customer feedback into actionable insights.
+            Upload any CSV with customer feedback and see AI analysis in action. No account needed.
           </p>
-          <Link href="/waitlist">
-            <Button size="lg" className="text-lg px-8 py-4">
-              Join Waitlist
-            </Button>
-          </Link>
+          <div className="grid md:grid-cols-3 gap-4 text-sm">
+            <div className="bg-white p-3 rounded-lg">
+              <span className="font-semibold">📊 Sentiment Analysis</span><br/>
+              Get 0-100 scores for each piece of feedback
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <span className="font-semibold">🚨 Urgency Detection</span><br/>
+              Identify high-priority issues automatically
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <span className="font-semibold">🏷️ Theme Discovery</span><br/>
+              Find recurring patterns and insights
+            </div>
+          </div>
         </div>
 
         {/* Demo Stats */}
@@ -85,172 +94,63 @@ export default function HomePage() {
               <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                 1
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Collect Feedback</h3>
-              <p className="text-gray-600">Paste customer feedback from any source - emails, surveys, support tickets, or interviews.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Upload CSV</h3>
+              <p className="text-gray-600">Upload any CSV file with customer feedback. Just needs a "text" column.</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                 2
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">AI Analysis</h3>
-              <p className="text-gray-600">Our AI automatically analyzes and categorizes feedback using semantic understanding.</p>
+              <p className="text-gray-600">Our AI automatically analyzes sentiment, urgency, and discovers themes.</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                 3
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Get Insights</h3>
-              <p className="text-gray-600">Discover patterns, prioritize features, and make data-driven product decisions.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Export Insights</h3>
+              <p className="text-gray-600">Download your analyzed results as CSV for presentations and reports.</p>
             </div>
           </div>
         </div>
 
-        {/* Use Cases */}
+        {/* Tech Stack */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Perfect For</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="text-left p-6">
-              <div className="flex items-start space-x-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Product Teams</h3>
-                  <p className="text-gray-600">Prioritize features based on real user feedback and identify common pain points.</p>
-                </div>
-              </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Built With</h2>
+          <div className="grid md:grid-cols-4 gap-4">
+            <Card className="text-center p-4">
+              <div className="text-2xl mb-2">⚛️</div>
+              <h3 className="font-semibold">Next.js 14</h3>
+              <p className="text-sm text-gray-600">App Router + TypeScript</p>
             </Card>
-            
-            <Card className="text-left p-6">
-              <div className="flex items-start space-x-4">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Customer Success</h3>
-                  <p className="text-gray-600">Track customer satisfaction trends and identify areas for improvement.</p>
-                </div>
-              </div>
+            <Card className="text-center p-4">
+              <div className="text-2xl mb-2">🗄️</div>
+              <h3 className="font-semibold">Supabase</h3>
+              <p className="text-sm text-gray-600">PostgreSQL + Auth</p>
             </Card>
-            
-            <Card className="text-left p-6">
-              <div className="flex items-start space-x-4">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">UX Researchers</h3>
-                  <p className="text-gray-600">Analyze user interviews and usability studies to find insights.</p>
-                </div>
-              </div>
+            <Card className="text-center p-4">
+              <div className="text-2xl mb-2">🤖</div>
+              <h3 className="font-semibold">OpenAI</h3>
+              <p className="text-sm text-gray-600">GPT-4o-mini</p>
             </Card>
-            
-            <Card className="text-left p-6">
-              <div className="flex items-start space-x-4">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Startups</h3>
-                  <p className="text-gray-600">Make data-driven decisions with limited resources and user feedback.</p>
-                </div>
-              </div>
+            <Card className="text-center p-4">
+              <div className="text-2xl mb-2">🎨</div>
+              <h3 className="font-semibold">Tailwind CSS</h3>
+              <p className="text-sm text-gray-600">Modern UI</p>
             </Card>
           </div>
         </div>
 
-        {/* Pricing */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Simple Pricing</h2>
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Card className="text-center p-8 border-2 border-gray-200">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-4">$0</div>
-              <ul className="text-left space-y-3 mb-8">
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  Collect unlimited feedback
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  Basic dashboard
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  Store feedback securely
-                </li>
-              </ul>
-              <Link href="/login">
-                <Button variant="outline" className="w-full">
-                  Sign Up Free
-                </Button>
-              </Link>
-            </Card>
-            
-            <Card className="text-center p-8 border-2 border-blue-500 bg-blue-50">
-              <div className="bg-blue-500 text-white text-sm font-medium px-3 py-1 rounded-full inline-block mb-4">
-                Most Popular
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-4">$100<span className="text-lg text-gray-600">/month</span></div>
-              <ul className="text-left space-y-3 mb-8">
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  Everything in Free
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  AI-powered semantic search
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  Automated clustering & insights
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  Advanced analytics & reporting
-                </li>
-              </ul>
-              <Link href="/login">
-                <Button className="w-full">
-                  Start Pro Trial
-                </Button>
-              </Link>
-            </Card>
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="p-8 bg-gray-50 rounded-lg">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Ready to get started?</h2>
-          <p className="text-gray-600 mb-6">Join product teams using SignalNote to make data-driven decisions.</p>
-          <Link href="/login">
-            <Button size="lg" className="text-lg px-8 py-4">
-              Start Your Free Trial
+        {/* Final CTA */}
+        <div className="p-8 bg-blue-50 rounded-lg border border-blue-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Ready to see it in action?</h2>
+          <p className="text-gray-600 mb-6">Try the demo now - no signup required. See how AI can transform your feedback analysis.</p>
+          <Link href="/demo">
+            <Button size="lg" className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700">
+              🚀 Launch Demo
             </Button>
           </Link>
+          <p className="text-sm text-gray-500 mt-3">Built in 2 weeks • Open source • No account needed</p>
         </div>
       </div>
     </div>
