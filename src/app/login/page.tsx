@@ -1,9 +1,9 @@
 'use client'
 
 export const dynamic = 'force-dynamic'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSupabaseBrowser } from '@/lib/supabase-browser'
+import { createClient } from '@/lib/supabase'
 import Button from '@/components/Button'
 import Input from '@/components/Input'
 import Card from '@/components/Card'
@@ -19,6 +19,17 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   const router = useRouter()
 
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        router.push('/app')
+      }
+    }
+    checkSession()
+  }, [router])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -26,12 +37,12 @@ export default function LoginPage() {
     setMessage('')
 
     try {
-      const supabase = getSupabaseBrowser()
+      const supabase = createClient()
       
       if (isPasswordReset) {
         // Send password reset email
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback?next=/settings`
+          redirectTo: `${window.location.origin}/auth/callback?next=/settings`
         })
         if (error) throw error
         
@@ -42,7 +53,7 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`
+            emailRedirectTo: `${window.location.origin}/auth/callback`
           }
         })
         if (error) throw error
@@ -54,7 +65,7 @@ export default function LoginPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`
+            emailRedirectTo: `${window.location.origin}/auth/callback`
           }
         })
         if (error) throw error
@@ -77,7 +88,7 @@ export default function LoginPage() {
             .single()
           
           if (profile?.onboarding_completed) {
-            router.push('/dashboard')
+            router.push('/app')
           } else {
             router.push('/onboarding')
           }
