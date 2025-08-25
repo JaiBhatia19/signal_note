@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabaseBrowserClient } from '@/lib/supabase/client';
+import { supabaseBrowser } from '@/lib/supabase/client';
 import Button from '@/components/Button'
 
 interface AnalysisResult {
@@ -41,7 +41,7 @@ export default function ExploreTab({ user }: ExploreTabProps) {
 
   const loadResults = async () => {
     try {
-      const { data, error } = await supabaseBrowserClient
+      const { data, error } = await supabaseBrowser()
         .from('analyses')
         .select(`
           id,

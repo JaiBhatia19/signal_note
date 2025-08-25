@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { supabaseBrowserClient } from '@/lib/supabase/client';
+import { supabaseBrowser } from '@/lib/supabase/client';
 import Button from './Button'
 import Badge from './Badge'
 
@@ -15,7 +15,7 @@ export default function Nav() {
 
   useEffect(() => {
     const getUser = async () => {
-      const supabase = supabaseBrowserClient
+      const supabase = supabaseBrowser()
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
       
@@ -32,10 +32,10 @@ export default function Nav() {
 
     getUser()
 
-    const { data: { subscription } } = supabaseBrowserClient.auth.onAuthStateChange(async (event: any, session: any) => {
+    const { data: { subscription } } = supabaseBrowser().auth.onAuthStateChange(async (event: any, session: any) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        const { data: profile } = await supabaseBrowserClient
+        const { data: profile } = await supabaseBrowser()
           .from('profiles')
           .select('role')
           .eq('id', session.user.id)
@@ -51,7 +51,7 @@ export default function Nav() {
   }, [])
 
   const handleSignOut = async () => {
-    await supabaseBrowserClient.auth.signOut()
+    await supabaseBrowser().auth.signOut()
     router.push('/')
   }
 
