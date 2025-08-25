@@ -1,9 +1,15 @@
 import OpenAI from 'openai';
 import { env } from './env';
 
-const openai = new OpenAI({
-  apiKey: env.OPENAI_API_KEY,
-});
+// Lazy-load OpenAI client to avoid build-time instantiation
+function getOpenAI() {
+  if (!env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY not configured');
+  }
+  return new OpenAI({
+    apiKey: env.OPENAI_API_KEY,
+  });
+}
 
 export interface FeedbackAnalysis {
   sentiment: number;
@@ -31,6 +37,7 @@ Feedback text: `;
 
 export async function analyzeFeedback(text: string): Promise<FeedbackAnalysis> {
   try {
+    const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
       model: env.ANALYSIS_MODEL || 'gpt-4o-mini',
       messages: [
@@ -81,6 +88,7 @@ export async function analyzeFeedback(text: string): Promise<FeedbackAnalysis> {
 
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
+    const openai = getOpenAI();
     const response = await openai.embeddings.create({
       model: env.EMBEDDINGS_MODEL || 'text-embedding-3-small',
       input: text,
