@@ -4,7 +4,7 @@ import { env } from './env';
 // Lazy-load OpenAI client to avoid build-time instantiation
 function getOpenAI() {
   if (!env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY not configured');
+    return null;
   }
   return new OpenAI({
     apiKey: env.OPENAI_API_KEY,
@@ -38,6 +38,17 @@ Feedback text: `;
 export async function analyzeFeedback(text: string): Promise<FeedbackAnalysis> {
   try {
     const openai = getOpenAI();
+    
+    // Return deterministic stub if no API key
+    if (!openai) {
+      return {
+        sentiment: 0.5,
+        urgency: 0.5,
+        insights: ['Demo mode - no OpenAI key configured'],
+        business_impact: 3,
+      };
+    }
+    
     const completion = await openai.chat.completions.create({
       model: env.ANALYSIS_MODEL || 'gpt-4o-mini',
       messages: [
@@ -89,6 +100,12 @@ export async function analyzeFeedback(text: string): Promise<FeedbackAnalysis> {
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
     const openai = getOpenAI();
+    
+    // Return deterministic stub if no API key
+    if (!openai) {
+      return new Array(1536).fill(0.1);
+    }
+    
     const response = await openai.embeddings.create({
       model: env.EMBEDDINGS_MODEL || 'text-embedding-3-small',
       input: text,

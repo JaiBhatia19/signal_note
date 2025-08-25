@@ -7,6 +7,8 @@ import { useEffect } from 'react'
 import UploadTab from './UploadTab'
 import ExploreTab from './ExploreTab'
 import ThemesTab from './ThemesTab'
+import ErrorBoundary from '@/components/ErrorBoundary'
+import Button from '@/components/Button'
 
 type TabType = 'upload' | 'explore' | 'themes'
 
@@ -55,7 +57,16 @@ export default function AppPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">SignalNote v1</h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">SignalNote v1</h1>
+            <Button
+              onClick={() => router.push('/demo')}
+              variant="outline"
+              className="text-sm"
+            >
+              🚀 Try Demo
+            </Button>
+          </div>
           <p className="text-gray-600">Upload feedback, analyze with AI, and discover insights</p>
         </div>
 
@@ -81,9 +92,11 @@ export default function AppPage() {
 
         {/* Tab Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          {activeTab === 'upload' && <UploadTab user={user} />}
-          {activeTab === 'explore' && <ExploreTab user={user} />}
-          {activeTab === 'themes' && <ThemesTab user={user} />}
+          <ErrorBoundary>
+            {activeTab === 'upload' && <UploadTab user={user} />}
+            {activeTab === 'explore' && <ExploreTab user={user} />}
+            {activeTab === 'themes' && <ThemesTab user={user} />}
+          </ErrorBoundary>
         </div>
       </div>
     </div>

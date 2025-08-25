@@ -4,27 +4,36 @@
 🚀 Just shipped SignalNote v1 - turning customer feedback into actionable insights with AI
 
 ## Value Propositions
-• **Upload CSV feedback** → Get instant sentiment, urgency, and theme analysis  
-• **Discover patterns** → See what customers care about most with AI-generated themes  
-• **Export insights** → Download filtered results to share with your team  
+• **60-second insights**: Upload CSV → AI analysis → See sentiment, urgency, themes, and action items
+• **Pattern discovery**: Automatically identify recurring feedback themes with example quotes
+• **Export & share**: Download filtered results to CSV for stakeholder presentations
 
 ## Candid Limitation
-Built this in 2 days for a demo - it's minimal but functional. OpenAI integration with fallback analysis so it works even without API keys.
+Built for teams who want to move fast - currently handles 5 items per batch (perfect for weekly feedback reviews, not enterprise-scale operations)
 
 ## Call to Action
-Try it live: [https://signalnote.vercel.app](https://signalnote.vercel.app)
+Try it live: [LIVE_LINK_PLACEHOLDER] - no signup required for demo
 
-## Tags
-#ProductLaunch #CustomerFeedback #AI #Startup #MVP #NextJS #Supabase
+## Hashtags
+#ProductManagement #CustomerFeedback #AI #Startup #YC #ProductHunt
 
 ---
 
-## Alternative Shorter Version
+## Alternative Version (More Technical)
 
-🚀 Launched SignalNote v1 - AI-powered customer feedback analysis
+## Hook
+🔧 Built SignalNote v1 in 2 weeks - here's what I learned about shipping AI features fast
 
-Upload CSV → Get insights → Export results
+## Value Propositions
+• **OpenAI + fallbacks**: Works even without API keys (deterministic analysis)
+• **Edge → Node migration**: Fixed Next.js 14 build issues for production deployment
+• **RLS-first database**: Supabase with proper user isolation from day one
 
-Built in 2 days, minimal but functional. Try it: [https://signalnote.vercel.app](https://signalnote.vercel.app)
+## Candid Limitation
+Had to defer real-time updates and advanced clustering for v2 - focused on core user value first
 
-#ProductLaunch #AI #MVP 
+## Call to Action
+Code is open: [GITHUB_LINK_PLACEHOLDER] - built with Next.js 14, Supabase, OpenAI
+
+## Hashtags
+#NextJS #Supabase #OpenAI #FullStack #Startup #OpenSource 
