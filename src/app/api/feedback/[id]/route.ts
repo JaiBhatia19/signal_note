@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getSupabaseServer } from "@/lib/supabase-server"
+import { supabaseServer } from '@/lib/supabase/server';
 import { generateEmbedding } from "@/lib/openai"
 
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = getSupabaseServer()
+    const supabase = supabaseServer()
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -20,10 +20,10 @@ export async function PUT(
 
     // Verify ownership
     const { data: existing } = await supabase
-      .from('feedback')
+      .from('feedback_items')
       .select('id')
       .eq('id', params.id)
-      .eq('owner_id', user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (!existing) {
@@ -37,7 +37,7 @@ export async function PUT(
     }
 
     const { error } = await supabase
-      .from('feedback')
+      .from('feedback_items')
       .update({ 
         text: content, 
         source, 
@@ -61,7 +61,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = getSupabaseServer()
+    const supabase = supabaseServer()
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -70,10 +70,10 @@ export async function DELETE(
 
     // Verify ownership
     const { data: existing } = await supabase
-      .from('feedback')
+      .from('feedback_items')
       .select('id')
       .eq('id', params.id)
-      .eq('owner_id', user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (!existing) {
@@ -81,7 +81,7 @@ export async function DELETE(
     }
 
     const { error } = await supabase
-      .from('feedback')
+      .from('feedback_items')
       .delete()
       .eq('id', params.id)
 

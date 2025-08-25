@@ -1,4 +1,4 @@
-import { getSupabaseServer } from '@/lib/supabase-server'
+import { supabaseServer } from '@/lib/supabase/server';
 import Card from '@/components/Card'
 import Badge from '@/components/Badge'
 import Link from 'next/link'
@@ -24,7 +24,7 @@ export default function AnalyticsPage() {
 }
 
 async function AnalyticsDashboard() {
-  const supabase = getSupabaseServer()
+  const supabase = supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) return null

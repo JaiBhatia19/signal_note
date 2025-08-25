@@ -4,6 +4,8 @@ import { getReferralStats } from '@/lib/referrals';
 
 export const runtime = "nodejs";
 
+import { supabaseServer } from '@/lib/supabase/server';
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getUser();

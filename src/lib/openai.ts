@@ -50,7 +50,7 @@ export async function analyzeFeedback(text: string): Promise<FeedbackAnalysis> {
     }
     
     const completion = await openai.chat.completions.create({
-      model: env.ANALYSIS_MODEL || 'gpt-4o-mini',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
@@ -107,7 +107,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     }
     
     const response = await openai.embeddings.create({
-      model: env.EMBEDDINGS_MODEL || 'text-embedding-3-small',
+      model: 'text-embedding-3-small',
       input: text,
     });
 

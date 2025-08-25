@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
-import { getSupabaseServer } from '@/lib/supabase-server'
+import { supabaseServer } from '@/lib/supabase/server';
 
 interface GuardProps {
   children: ReactNode
@@ -9,7 +9,7 @@ interface GuardProps {
 
 export default async function Guard({ children, requirePro = false }: GuardProps) {
   try {
-    const supabase = getSupabaseServer()
+    const supabase = supabaseServer()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError) {

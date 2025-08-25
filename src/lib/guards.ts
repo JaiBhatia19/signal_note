@@ -1,7 +1,7 @@
-import { getSupabaseServer } from "./supabase-server"
+import { supabaseServer } from "./supabase/server";
 
 export async function getUser() {
-  const supabase = getSupabaseServer()
+  const supabase = supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   return user
 }
@@ -13,7 +13,7 @@ export async function requireUser() {
 }
 
 export async function requirePro() {
-  const supabase = getSupabaseServer()
+  const supabase = supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("unauthorized")
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()

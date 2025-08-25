@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
+import { supabaseBrowser } from '@/lib/supabase/client';
 import { useEffect } from 'react'
 
 interface AnalysisResult {
@@ -22,8 +22,7 @@ export default function DemoPage() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session } } = await supabaseBrowser.auth.getSession()
       if (!session) {
         router.push('/login')
       }

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
-import { getSupabaseServer } from "@/lib/supabase-server"
 import OpenAI from 'openai'
 
 export const runtime = "nodejs";
+
+import { supabaseServer } from '@/lib/supabase/server';
 
 const CLUSTER_PROMPT = (items: string) => `
 You are a senior product manager analyzing customer feedback. Group similar feedback into 3-7 clusters and provide:
@@ -37,7 +38,7 @@ ${items}
 `
 
 export async function POST() {
-  const supabase = getSupabaseServer()
+  const supabase = supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 

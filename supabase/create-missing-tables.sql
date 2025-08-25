@@ -3,8 +3,8 @@
 
 -- Feedback items table (simplified from existing feedback table)
 create table if not exists public.feedback_items (
-  id bigserial primary key,
-  user_id uuid not null references public.profiles(id) on delete cascade,
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid,
   text text not null,
   source text,
   created_at timestamptz default now()
@@ -12,45 +12,28 @@ create table if not exists public.feedback_items (
 
 -- Analyses table for AI results
 create table if not exists public.analyses (
-  id bigserial primary key,
-  item_id bigint not null references public.feedback_items(id) on delete cascade,
-  sentiment_number integer not null check (sentiment_number >= 0 and sentiment_number <= 100),
-  urgency_text text not null check (urgency_text in ('low', 'medium', 'high')),
-  theme_text text not null,
-  action_text text not null,
+  id uuid primary key default gen_random_uuid(),
+  item_id uuid references public.feedback_items(id) on delete cascade,
+  sentiment_number integer,
+  urgency_text text,
+  theme_text text,
+  action_text text,
   created_at timestamptz default now()
 );
 
--- Enable RLS on new tables
+-- enable RLS
 alter table public.feedback_items enable row level security;
 alter table public.analyses enable row level security;
 
--- RLS Policies for feedback_items
-create policy "users can view own feedback items" on public.feedback_items
-  for select using (auth.uid() = user_id);
+-- simple per-user isolation. adjust if you use Supabase auth.uid()
+drop policy if exists "feedback_items_owner" on public.feedback_items;
+create policy "feedback_items_owner" on public.feedback_items
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-create policy "users can insert own feedback items" on public.feedback_items
-  for insert with check (auth.uid() = user_id);
-
-create policy "users can delete own feedback items" on public.feedback_items
-  for delete using (auth.uid() = user_id);
-
--- RLS Policies for analyses
-create policy "users can view own analyses" on public.analyses
-  for select using (
-    exists (
-      select 1 from public.feedback_items 
-      where id = item_id and user_id = auth.uid()
-    )
-  );
-
-create policy "users can insert own analyses" on public.analyses
-  for insert with check (
-    exists (
-      select 1 from public.feedback_items 
-      where id = item_id and user_id = auth.uid()
-    )
-  );
+drop policy if exists "analyses_owner" on public.analyses;
+create policy "analyses_owner" on public.analyses
+  for all using (exists(select 1 from public.feedback_items f where f.id = item_id and f.user_id = auth.uid()))
+  with check (exists(select 1 from public.feedback_items f where f.id = item_id and f.user_id = auth.uid()));
 
 -- Indexes for performance
 create index if not exists idx_feedback_items_user_id on public.feedback_items(user_id, created_at desc);

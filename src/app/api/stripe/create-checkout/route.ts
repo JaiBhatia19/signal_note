@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe"
-import { getSupabaseServer } from "@/lib/supabase-server"
+import { supabaseServer } from '@/lib/supabase/server';
 
 export const runtime = "nodejs";
 
 export async function POST() {
   try {
-    const supabase = getSupabaseServer()
+    const supabase = supabaseServer()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {

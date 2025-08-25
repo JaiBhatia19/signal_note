@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createRoute } from '@/lib/supabase'
-import OpenAI from 'openai'
+import { NextResponse } from "next/server";
+export const runtime = "nodejs";
 
-export const runtime = "nodejs"
+import { supabaseServer } from "@/lib/supabase/server";
+import { getOpenAI } from "@/lib/ai/openai";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: any) {
   try {
-    const supabase = createRoute()
+    const supabase = supabaseServer()
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -22,12 +22,10 @@ export async function POST(request: NextRequest) {
     const results = []
     
     // Check if OpenAI key is available
-    const openaiKey = process.env.OPENAI_API_KEY
+    const openai = getOpenAI()
     
-    if (openaiKey) {
+    if (openai) {
       try {
-        const openai = new OpenAI({ apiKey: openaiKey })
-        
         for (const line of lines) {
           const prompt = `Analyze this feedback line and return JSON with:
 - sentiment: 0-100 score (0=very negative, 100=very positive)

@@ -1,54 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUser } from '@/lib/guards';
-import { createClient } from '@supabase/supabase-js';
-import { env } from '@/lib/env';
-
 export const runtime = "nodejs";
 
-const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+import { supabaseServer } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getUser();
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const supabase = supabaseServer();
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: profile, error } = await supabase
+    // Get user profile
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single();
+      .single()
 
-    if (error) {
-      console.error('Profile fetch error:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch profile' },
-        { status: 500 }
-      );
+    if (profileError) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ profile });
+    return NextResponse.json({ profile })
   } catch (error) {
-    console.error('Profile GET API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await getUser();
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const supabase = supabaseServer();
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { name } = await request.json();

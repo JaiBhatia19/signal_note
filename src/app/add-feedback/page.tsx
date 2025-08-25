@@ -1,12 +1,12 @@
 import Card from '@/components/Card'
 import AddFeedbackForm from './AddFeedbackForm'
-import { getSupabaseServer } from '@/lib/supabase-server'
+import { supabaseServer } from '@/lib/supabase/server';
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AddFeedbackPage() {
-  const supabase = getSupabaseServer()
+  const supabase = supabaseServer()
   const { data: { user }, error } = await supabase.auth.getUser()
   
   // If no user, show login prompt instead of redirecting

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseService } from '@/lib/supabase-service';
-
 export const runtime = "nodejs";
+
+import { supabaseServer } from '@/lib/supabase/server';
 
 // Temporary in-memory storage as fallback
 let tempWaitlist: { email: string; ref_code?: string; created_at: Date }[] = [];
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     // Try to use database first
     try {
-      const supabase = getSupabaseService();
+      const supabase = supabaseServer();
       
       // Check if email already exists
       const { data: existing } = await supabase
@@ -89,7 +89,7 @@ export async function GET() {
   try {
     // Try to use database first
     try {
-      const supabase = getSupabaseService();
+      const supabase = supabaseServer();
       
       const { data, error } = await supabase
         .from('waitlist')

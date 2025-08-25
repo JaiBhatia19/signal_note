@@ -2,8 +2,8 @@
 
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { createClient } from '@/lib/supabase'
 import Button from '@/components/Button'
+import { supabaseBrowser } from '@/lib/supabase/client';
 
 interface CSVRow {
   text: string
@@ -20,8 +20,7 @@ export default function UploadTab({ user }: UploadTabProps) {
   const [csvData, setCsvData] = useState<CSVRow[]>([])
   const [validRows, setValidRows] = useState<CSVRow[]>([])
   const [invalidRows, setInvalidRows] = useState<CSVRow[]>([])
-  const [analyzing, setAnalyzing] = useState(false)
-  const [progress, setProgress] = useState(0)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -73,8 +72,14 @@ export default function UploadTab({ user }: UploadTabProps) {
         rows.push(row)
       }
 
+      // Limit to 5 rows for v1
+      const limitedValid = valid.slice(0, 5)
+      if (valid.length > 5) {
+        setError(`Limited to 5 rows for v1. Only processing first 5 rows.`)
+      }
+
       setCsvData(rows)
-      setValidRows(valid)
+      setValidRows(limitedValid)
       setInvalidRows(invalid)
       setError('')
       setSuccess('')
@@ -91,71 +96,49 @@ export default function UploadTab({ user }: UploadTabProps) {
     multiple: false
   })
 
-  const handleAnalyze = async () => {
+  const handleUpload = async () => {
     if (validRows.length === 0) return
     
-    setAnalyzing(true)
-    setProgress(0)
+    setUploading(true)
     setError('')
     setSuccess('')
 
     try {
-      // Upload feedback items first
-      const supabase = createClient()
-      const feedbackItems = validRows.map(row => ({
-        user_id: user.id,
-        text: row.text,
-        source: row.source || 'upload',
-        created_at: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString()
-      }))
+      // Create a CSV file from valid rows
+      const csvContent = [
+        'text,source',
+        ...validRows.map(row => `${row.text},${row.source || 'upload'}`)
+      ].join('\n')
+      
+      const blob = new Blob([csvContent], { type: 'text/csv' })
+      const file = new File([blob], 'feedback.csv', { type: 'text/csv' })
 
-      const { data: items, error: insertError } = await supabase
-        .from('feedback_items')
-        .insert(feedbackItems)
-        .select()
+      // Upload to batch endpoint using proper form
+      const formData = new FormData()
+      formData.append('file', file)
 
-      if (insertError) throw insertError
-
-      // Start analysis
       const response = await fetch('/api/feedback/batch', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          itemIds: items.map(item => item.id),
-          userId: user.id
-        })
+        body: formData
       })
 
-      if (!response.ok) throw new Error('Analysis failed')
-
-      const { jobId } = await response.json()
-      
-      // Poll for progress
-      const pollProgress = async () => {
-        const progressResponse = await fetch(`/api/feedback/batch?jobId=${jobId}`)
-        if (progressResponse.ok) {
-          const { status, progress: jobProgress } = await progressResponse.json()
-          setProgress(jobProgress)
-          
-          if (status === 'completed') {
-            setSuccess(`Analysis complete! ${items.length} items processed.`)
-            setAnalyzing(false)
-            // Refresh data in other tabs
-            window.location.reload()
-          } else if (status === 'failed') {
-            throw new Error('Analysis failed')
-          } else {
-            // Continue polling
-            setTimeout(pollProgress, 2000)
-          }
-        }
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Upload failed')
       }
 
-      pollProgress()
+      const result = await response.json()
+      setSuccess(`Successfully processed ${result.count} feedback items!`)
+      
+      // Clear the form
+      setCsvData([])
+      setValidRows([])
+      setInvalidRows([])
 
     } catch (err: any) {
-      setError(err.message || 'Analysis failed')
-      setAnalyzing(false)
+      setError(err.message || 'Upload failed')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -165,7 +148,7 @@ export default function UploadTab({ user }: UploadTabProps) {
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Upload Feedback</h2>
         <p className="text-gray-600">
           Upload a CSV file with feedback. The file must contain a "text" column. 
-          Optional columns: "source" and "created_at".
+          Optional columns: "source" and "created_at". Limited to 5 rows per upload for v1.
         </p>
       </div>
 
@@ -184,7 +167,7 @@ export default function UploadTab({ user }: UploadTabProps) {
             ) : (
               <div>
                 <p className="text-lg">📁 Drop a CSV file here, or click to select</p>
-                <p className="text-sm mt-2">Supports .csv and .txt files</p>
+                <p className="text-sm mt-2">Supports .csv and .txt files (max 5 rows)</p>
               </div>
             )}
           </div>
@@ -201,76 +184,66 @@ export default function UploadTab({ user }: UploadTabProps) {
             </div>
           </div>
 
+          {/* Valid Rows */}
           {validRows.length > 0 && (
-            <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
-              <h4 className="font-medium text-green-800 mb-2">Valid Rows ({validRows.length})</h4>
-              <div className="space-y-2">
-                {validRows.slice(0, 5).map((row, i) => (
-                  <div key={i} className="text-sm text-green-700">
-                    "{row.text.substring(0, 100)}{row.text.length > 100 ? '...' : ''}"
+            <div className="mb-4">
+              <h4 className="text-md font-medium text-green-700 mb-2">Valid Rows ({validRows.length})</h4>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                {validRows.map((row, index) => (
+                  <div key={index} className="mb-2 p-2 bg-white rounded border">
+                    <div className="font-medium">{row.text.substring(0, 100)}{row.text.length > 100 ? '...' : ''}</div>
+                    {row.source && <div className="text-sm text-gray-600">Source: {row.source}</div>}
                   </div>
                 ))}
-                {validRows.length > 5 && (
-                  <div className="text-sm text-green-600">...and {validRows.length - 5} more</div>
-                )}
               </div>
             </div>
           )}
 
+          {/* Invalid Rows */}
           {invalidRows.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <h4 className="font-medium text-red-800 mb-2">Invalid Rows ({invalidRows.length})</h4>
-              <div className="space-y-2">
-                {invalidRows.slice(0, 3).map((row, i) => (
-                  <div key={i} className="text-sm text-red-700">
-                    <div>"{row.text.substring(0, 100)}{row.text.length > 100 ? '...' : ''}"</div>
-                    <div className="text-xs text-red-600">Errors: {row.errors?.join(', ')}</div>
+            <div className="mb-4">
+              <h4 className="text-md font-medium text-red-700 mb-2">Invalid Rows ({invalidRows.length})</h4>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                {invalidRows.map((row, index) => (
+                  <div key={index} className="mb-2 p-2 bg-white rounded border">
+                    <div className="font-medium">{row.text.substring(0, 100)}{row.text.length > 100 ? '...' : ''}</div>
+                    {row.errors && (
+                      <div className="text-sm text-red-600">
+                        Errors: {row.errors.join(', ')}
+                      </div>
+                    )}
                   </div>
                 ))}
-                {invalidRows.length > 3 && (
-                  <div className="text-sm text-red-600">...and {invalidRows.length - 3} more</div>
-                )}
               </div>
+            </div>
+          )}
+
+          {/* Upload Button */}
+          {validRows.length > 0 && (
+            <div className="flex justify-center">
+              <Button
+                onClick={handleUpload}
+                disabled={uploading}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {uploading ? 'Uploading...' : `Upload ${validRows.length} Items`}
+              </Button>
             </div>
           )}
         </div>
       )}
 
-      {/* Action Buttons */}
-      {validRows.length > 0 && (
-        <div className="flex items-center space-x-4">
-          <Button
-            onClick={handleAnalyze}
-            disabled={analyzing}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {analyzing ? 'Analyzing...' : `Analyze ${validRows.length} Items`}
-          </Button>
-          
-          {analyzing && (
-            <div className="flex items-center space-x-2">
-              <div className="w-32 bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-              <span className="text-sm text-gray-600">{progress}%</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Status Messages */}
+      {/* Error Message */}
       {error && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-800">{error}</p>
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="text-red-800">{error}</div>
         </div>
       )}
 
+      {/* Success Message */}
       {success && (
-        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-          <p className="text-green-800">{success}</p>
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="text-green-800">{success}</div>
         </div>
       )}
     </div>

@@ -1,9 +1,9 @@
-import { getSupabaseServer } from '@/lib/supabase-server'
+import { supabaseServer } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic'
 
 export default async function DebugPage() {
-  const supabase = getSupabaseServer()
+  const supabase = supabaseServer()
   
   try {
     const { data: { user }, error } = await supabase.auth.getUser()

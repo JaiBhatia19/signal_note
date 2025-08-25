@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server"
-import { stripe } from "@/lib/stripe"
-import { getSupabaseServer } from "@/lib/supabase-server"
-
+import { NextResponse } from 'next/server';
 export const runtime = "nodejs";
+
+import { supabaseServer } from '@/lib/supabase/server';
+import { stripe } from '@/lib/stripe';
 
 export async function GET() {
   try {
-    const supabase = getSupabaseServer()
+    const supabase = supabaseServer()
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {

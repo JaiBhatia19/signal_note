@@ -1,4 +1,4 @@
-import { getSupabaseServer } from '@/lib/supabase-server'
+import { supabaseServer } from '@/lib/supabase/server';
 import Card from '@/components/Card'
 import Badge from '@/components/Badge'
 import Link from 'next/link'
@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  const supabase = getSupabaseServer()
+  const supabase = supabaseServer()
   const { data: { user }, error } = await supabase.auth.getUser()
   
   if (!user || error) {

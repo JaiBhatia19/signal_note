@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { supabaseBrowser } from '@/lib/supabase/client';
 
 interface ThemeSummary {
   theme: string
   count: number
-  example_quotes: string[]
+  sample_quotes: string[]
 }
 
 interface ThemesTabProps {
@@ -26,15 +26,13 @@ export default function ThemesTab({ user }: ThemesTabProps) {
 
   const loadThemes = async () => {
     try {
-      const supabase = createClient()
+      const response = await fetch('/api/themes')
+      if (!response.ok) {
+        throw new Error('Failed to fetch themes')
+      }
       
-      // Use the database function to get themes summary
-      const { data, error } = await supabase
-        .rpc('get_themes_summary', { search_user_id: user.id })
-
-      if (error) throw error
-
-      setThemes(data || [])
+      const data = await response.json()
+      setThemes(data.themes || [])
     } catch (err: any) {
       setError(err.message || 'Failed to load themes')
     } finally {
@@ -50,9 +48,9 @@ export default function ThemesTab({ user }: ThemesTabProps) {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-gray-600">Loading themes...</span>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading themes...</p>
         </div>
       </div>
     )
@@ -61,8 +59,11 @@ export default function ThemesTab({ user }: ThemesTabProps) {
   if (error) {
     return (
       <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-red-800">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">Error: {error}</div>
+          <button onClick={loadThemes} className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded">
+            Retry
+          </button>
         </div>
       </div>
     )
@@ -99,57 +100,45 @@ export default function ThemesTab({ user }: ThemesTabProps) {
             className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
             onClick={() => handleThemeClick(theme.theme)}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900 truncate">
-                {theme.theme}
-              </h3>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {theme.count} items
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-medium text-gray-900">{theme.theme}</h3>
+              <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
+                {theme.count}
               </span>
             </div>
-
-            <div className="space-y-3">
-              <p className="text-sm text-gray-600">
-                Example quotes:
-              </p>
-              {theme.example_quotes.map((quote, quoteIndex) => (
-                <div
-                  key={quoteIndex}
-                  className="text-sm text-gray-700 bg-gray-50 p-3 rounded border-l-4 border-blue-200"
-                >
-                  "{quote.length > 120 ? `${quote.substring(0, 120)}...` : quote}"
-                </div>
-              ))}
+            
+            <div className="text-sm text-gray-600 mb-3">
+              {theme.count === 1 ? '1 feedback item' : `${theme.count} feedback items`}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <div className="flex items-center text-sm text-blue-600 hover:text-blue-700">
-                <span>Click to explore →</span>
+            {/* Sample Quotes */}
+            {theme.sample_quotes && theme.sample_quotes.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs font-medium text-gray-700 mb-2">Sample quotes:</div>
+                {theme.sample_quotes.map((quote, qIndex) => (
+                  <div key={qIndex} className="text-xs text-gray-600 mb-1 p-2 bg-gray-50 rounded italic">
+                    "{quote.length > 80 ? quote.substring(0, 80) + '...' : quote}"
+                  </div>
+                ))}
               </div>
+            )}
+            
+            <div className="mt-4 text-xs text-blue-600 hover:text-blue-800">
+              Click to explore →
             </div>
           </div>
         ))}
       </div>
 
-      {/* Summary Stats */}
+      {/* Summary */}
       <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-2xl font-bold text-gray-900">{themes.length}</div>
-            <div className="text-sm text-gray-600">Total Themes</div>
+        <div className="text-center">
+          <div className="text-2xl font-semibold text-gray-900 mb-2">
+            {themes.length} {themes.length === 1 ? 'Theme' : 'Themes'} Identified
           </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900">
-              {themes.reduce((sum, theme) => sum + theme.count, 0)}
-            </div>
-            <div className="text-sm text-gray-600">Total Items</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900">
-              {themes.length > 0 ? Math.round(themes.reduce((sum, theme) => sum + theme.count, 0) / themes.length) : 0}
-            </div>
-            <div className="text-sm text-gray-600">Avg Items per Theme</div>
-          </div>
+          <p className="text-gray-600">
+            Total feedback items analyzed: {themes.reduce((sum, theme) => sum + theme.count, 0)}
+          </p>
         </div>
       </div>
     </div>

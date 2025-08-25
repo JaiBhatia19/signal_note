@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import Textarea from '@/components/Textarea'
-import { getSupabaseBrowser } from '@/lib/supabase-browser'
+import { supabaseBrowser } from '@/lib/supabase/client';
 
 export default function AddFeedbackForm() {
   const [content, setContent] = useState('')

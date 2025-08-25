@@ -1,24 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseServer } from '@/lib/supabase-server'
-import { applyRateLimit, apiRateLimit } from '@/lib/rate-limit'
-import { env } from '@/lib/env'
-import OpenAI from 'openai'
+import { supabaseServer } from '@/lib/supabase/server'
+import { getOpenAI } from '@/lib/ai/openai'
 
 export const runtime = "nodejs";
 
-const openai = new OpenAI({
-  apiKey: env.OPENAI_API_KEY,
-})
-
 export async function POST(request: NextRequest) {
   try {
-    // Apply rate limiting
-    const rateLimitResponse = applyRateLimit(request, apiRateLimit)
-    if (rateLimitResponse) {
-      return rateLimitResponse
-    }
-
-    const supabase = getSupabaseServer()
+    const supabase = supabaseServer()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
@@ -76,7 +64,9 @@ export async function POST(request: NextRequest) {
     let businessImpact = 1
 
     try {
-      const prompt = `Analyze this customer feedback and provide insights:
+      const openai = getOpenAI()
+      if (openai) {
+        const prompt = `Analyze this customer feedback and provide insights:
 
 Feedback: "${text}"
 Source: ${source || 'Unknown'}
@@ -99,33 +89,47 @@ Format as JSON:
   "actionItems": ["action 1", "action 2"]
 }`
 
-      const completion = await openai.chat.completions.create({
-        model: env.ANALYSIS_MODEL || 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        max_tokens: 500,
-      })
+        const completion = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.3,
+          max_tokens: 500,
+        })
 
-      const analysisText = completion.choices[0]?.message?.content
-      if (analysisText) {
-        try {
-          const parsed = JSON.parse(analysisText)
-          sentiment = Math.max(0, Math.min(1, parsed.sentiment || 0.5))
-          urgency = Math.max(0, Math.min(1, parsed.urgency || 0.5))
-          businessImpact = Math.max(1, Math.min(5, parsed.businessImpact || 3))
-          analysis = {
-            insights: Array.isArray(parsed.insights) ? parsed.insights : [],
-            actionItems: Array.isArray(parsed.actionItems) ? parsed.actionItems : [],
-            rawAnalysis: analysisText
+        const analysisText = completion.choices[0]?.message?.content
+        if (analysisText) {
+          try {
+            const parsed = JSON.parse(analysisText)
+            sentiment = Math.max(0, Math.min(1, parsed.sentiment || 0.5))
+            urgency = Math.max(0, Math.min(1, parsed.urgency || 0.5))
+            businessImpact = Math.max(1, Math.min(5, parsed.businessImpact || 3))
+            analysis = {
+              insights: Array.isArray(parsed.insights) ? parsed.insights : [],
+              actionItems: Array.isArray(parsed.actionItems) ? parsed.actionItems : [],
+              rawAnalysis: analysisText
+            }
+          } catch (parseError) {
+            console.error('Failed to parse AI analysis:', parseError)
+            // Fallback to basic analysis
+            analysis = {
+              insights: ['AI analysis completed but parsing failed'],
+              actionItems: ['Review feedback manually'],
+              rawAnalysis: analysisText
+            }
           }
-        } catch (parseError) {
-          console.error('Failed to parse AI analysis:', parseError)
-          // Fallback to basic analysis
-          analysis = {
-            insights: ['AI analysis completed but parsing failed'],
-            actionItems: ['Review feedback manually'],
-            rawAnalysis: analysisText
-          }
+        }
+      } else {
+        // Fallback analysis when OpenAI is not available
+        const words = text.toLowerCase().split(/\s+/)
+        sentiment = words.some(w => ['good', 'great', 'love', 'awesome', 'excellent'].includes(w)) ? 0.8 :
+                   words.some(w => ['bad', 'terrible', 'hate', 'awful', 'horrible'].includes(w)) ? 0.2 : 0.5
+        urgency = words.some(w => ['urgent', 'critical', 'broken', 'crash', 'error'].includes(w)) ? 0.8 :
+                 words.some(w => ['slow', 'issue', 'problem', 'bug'].includes(w)) ? 0.5 : 0.2
+        businessImpact = urgency > 0.7 ? 4 : urgency > 0.4 ? 3 : 2
+        analysis = {
+          insights: ['Analysis completed using fallback method'],
+          actionItems: ['Review feedback manually'],
+          fallback: true
         }
       }
     } catch (aiError) {
@@ -138,33 +142,13 @@ Format as JSON:
       }
     }
 
-    // Generate embedding for semantic search
-    let embedding = null
-    try {
-      const embeddingResponse = await openai.embeddings.create({
-        model: env.EMBEDDINGS_MODEL || 'text-embedding-3-small',
-        input: text,
-      })
-      embedding = embeddingResponse.data[0]?.embedding
-    } catch (embeddingError) {
-      console.error('Embedding generation failed:', embeddingError)
-      // Continue without embedding
-    }
-
     // Save to database
     const { data: feedback, error: dbError } = await supabase
-      .from('feedback')
+      .from('feedback_items')
       .insert({
-        owner_id: user.id,
-        source: source || 'manual',
-        user_segment: userSegment || 'general',
-        product_area: productArea || 'general',
+        user_id: user.id,
         text: text.trim(),
-        analysis,
-        sentiment,
-        urgency,
-        business_impact: businessImpact,
-        embedding,
+        source: source || 'manual',
       })
       .select()
       .single()
@@ -177,23 +161,17 @@ Format as JSON:
       }, { status: 500 })
     }
 
-    // Track event
-    try {
+    // Save analysis if available
+    if (analysis) {
       await supabase
-        .from('events')
+        .from('analyses')
         .insert({
-          owner_id: user.id,
-          name: 'feedback_added',
-          data: {
-            feedback_id: feedback.id,
-            has_ai_analysis: !!analysis,
-            has_embedding: !!embedding,
-            text_length: text.length,
-          }
+          item_id: feedback.id,
+          sentiment_number: Math.round(sentiment * 100),
+          urgency_text: urgency > 0.7 ? 'high' : urgency > 0.4 ? 'medium' : 'low',
+          theme_text: 'General',
+          action_text: analysis.actionItems?.[0] || 'Review feedback'
         })
-    } catch (eventError) {
-      console.error('Failed to track event:', eventError)
-      // Don't fail the request if event tracking fails
     }
 
     return NextResponse.json({
@@ -230,13 +208,7 @@ Format as JSON:
 
 export async function GET(request: NextRequest) {
   try {
-    // Apply rate limiting
-    const rateLimitResponse = applyRateLimit(request, apiRateLimit)
-    if (rateLimitResponse) {
-      return rateLimitResponse
-    }
-
-    const supabase = getSupabaseServer()
+    const supabase = supabaseServer()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
@@ -257,9 +229,9 @@ export async function GET(request: NextRequest) {
 
     // Get feedback with pagination
     const { data: feedback, error: dbError, count } = await supabase
-      .from('feedback')
-      .select('*', { count: 'exact' })
-      .eq('owner_id', user.id)
+      .from('feedback_items')
+      .select('*, analyses(*)', { count: 'exact' })
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
