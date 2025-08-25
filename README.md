@@ -1,10 +1,76 @@
-# SignalNote - YC-Ready MVP ✅ **COMPLETE & PRODUCTION-READY**
+# SignalNote v1 - Customer Feedback Analysis
 
-Turn customer feedback into actionable insights with AI-powered analysis, semantic search, and intelligent clustering.
+Turn customer feedback into actionable insights with AI-powered analysis and intelligent theme discovery.
 
-## 🎉 **MVP STATUS: 100% COMPLETE & PRODUCTION-READY**
+## 🚀 **Quick Start**
 
-**SignalNote MVP has been successfully completed and is ready for production deployment!** All features have been implemented, tested, and validated.
+### Prerequisites
+- Node.js 20+
+- Supabase account
+- OpenAI API key (optional - fallback analysis available)
+
+### 1. Clone and Install
+```bash
+git clone <your-repo-url>
+cd SignalNote
+npm install
+```
+
+### 2. Environment Setup
+```bash
+cp env.local.example .env.local
+```
+
+Fill in your environment variables:
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# OpenAI (optional)
+OPENAI_API_KEY=your_openai_api_key
+
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### 3. Database Setup
+```bash
+# Run the Supabase migration
+npx supabase db push
+
+# Add missing tables for v1
+npx supabase db push --file supabase/create-missing-tables.sql
+```
+
+### 4. Start Development
+```bash
+npm run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000)
+
+## 🌟 **v1 Features**
+
+### Core Functionality
+- **Authentication**: Supabase Auth with email magic links
+- **CSV Upload**: Upload feedback with validation (required: "text", optional: "source", "created_at")
+- **AI Analysis**: Sentiment (0-100), urgency (low/medium/high), themes, action suggestions
+- **Explore**: Filter and search analyzed results with export to CSV
+- **Themes**: Discover patterns with counts and example quotes
+- **Demo Mode**: Try the app without database access
+
+### CSV Schema
+Your CSV must contain:
+- `text` (required): The feedback content (max 1000 chars)
+- `source` (optional): Source of the feedback
+- `created_at` (optional): ISO date string
+
+### Limits
+- Text length: 1000 characters max
+- Batch size: 5 items processed simultaneously
+- Fallback analysis: Available when OpenAI key is missing
 
 ### ✅ **Final Validation Results**
 - **TypeScript Compilation**: ✅ Passed

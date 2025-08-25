@@ -1,200 +1,196 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { env } from '@/lib/env';
-import { analyzeAndEmbed } from '@/lib/openai';
-import { insertEmbedding } from '@/lib/search';
-import { getUser } from '@/lib/guards';
-import { parse } from 'csv-parse';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase'
+import OpenAI from 'openai'
 
-export const runtime = "nodejs";
+export const runtime = "nodejs"
 
-const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-
-interface CSVRow {
-  source?: string;
-  user_segment?: string;
-  product_area?: string;
-  text: string;
-  created_at?: string;
-}
+// Simple in-memory job tracking (in production, use Redis or database)
+const jobs = new Map<string, { status: 'pending' | 'processing' | 'completed' | 'failed', progress: number, error?: string }>()
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getUser();
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-
-    if (!file) {
-      return NextResponse.json(
-        { error: 'CSV file is required' },
-        { status: 400 }
-      );
-    }
-
-    if (!file.name.endsWith('.csv')) {
-      return NextResponse.json(
-        { error: 'File must be a CSV' },
-        { status: 400 }
-      );
-    }
-
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: 'File size must be less than 5MB' },
-        { status: 400 }
-      );
-    }
-
-    const csvText = await file.text();
+    const { itemIds, userId } = await request.json()
     
-    // Parse CSV
-    const rows: CSVRow[] = await new Promise((resolve, reject) => {
-      parse(csvText, {
-        columns: true,
-        skip_empty_lines: true,
-        trim: true,
-      }, (err: any, records: any) => {
-        if (err) reject(err);
-        else resolve(records);
-      });
-    });
-
-    if (rows.length === 0) {
-      return NextResponse.json(
-        { error: 'CSV contains no valid rows' },
-        { status: 400 }
-      );
+    if (!itemIds || !Array.isArray(itemIds) || itemIds.length === 0) {
+      return NextResponse.json({ error: 'Invalid item IDs' }, { status: 400 })
     }
 
-    // Check daily limit for beta
-    if (env.BETA_FEATURES) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const { count: todayCount } = await supabase
-        .from('feedback')
-        .select('*', { count: 'exact', head: true })
-        .eq('owner_id', user.id)
-        .gte('created_at', today.toISOString());
-
-      if (todayCount && todayCount + rows.length > 50) {
-        return NextResponse.json(
-          { error: `Daily feedback limit would be exceeded. You can add ${Math.max(0, 50 - todayCount)} more items today.` },
-          { status: 429 }
-        );
-      }
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
 
-    // Validate required fields
-    const invalidRows = rows.filter(row => !row.text || row.text.trim().length === 0);
-    if (invalidRows.length > 0) {
-      return NextResponse.json(
-        { error: `${invalidRows.length} rows are missing required text field` },
-        { status: 400 }
-      );
+    // Validate user owns these items
+    const supabase = createClient()
+    const { data: items, error: fetchError } = await supabase
+      .from('feedback_items')
+      .select('id, text')
+      .in('id', itemIds)
+      .eq('user_id', userId)
+
+    if (fetchError || !items || items.length !== itemIds.length) {
+      return NextResponse.json({ error: 'Items not found or access denied' }, { status: 403 })
     }
 
-    // Insert feedback rows
-    const feedbackToInsert = rows.map(row => ({
-      owner_id: user.id,
-      text: row.text.trim(),
-      source: row.source || null,
-      user_segment: row.user_segment || null,
-      product_area: row.product_area || null,
-      created_at: row.created_at ? new Date(row.created_at).toISOString() : undefined,
-    }));
+    // Create job
+    const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    jobs.set(jobId, { status: 'pending', progress: 0 })
 
-    const { data: insertedFeedback, error: insertError } = await supabase
-      .from('feedback')
-      .insert(feedbackToInsert)
-      .select('id, text');
+    // Start processing in background
+    processBatch(jobId, items, userId)
 
-    if (insertError) {
-      console.error('Batch feedback insert error:', insertError);
-      return NextResponse.json(
-        { error: 'Failed to insert feedback' },
-        { status: 500 }
-      );
-    }
+    return NextResponse.json({ jobId, status: 'started' })
 
-    // Track event
-    await supabase
-      .from('events')
-      .insert({
-        owner_id: user.id,
-        name: 'batch_feedback_uploaded',
-        data: { count: rows.length, filename: file.name },
-      });
-
-    // Process analysis in background (don't block response)
-    processBatchAnalysis(insertedFeedback, user.id);
-
-    return NextResponse.json(
-      { 
-        message: `Successfully uploaded ${rows.length} feedback items`,
-        feedback_ids: insertedFeedback.map(f => f.id),
-        analysis_in_progress: true,
-      },
-      { status: 201 }
-    );
   } catch (error) {
-    console.error('Batch feedback API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Batch analysis error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-// Background processing function
-async function processBatchAnalysis(feedbackItems: { id: number; text: string }[], userId: string) {
+export async function GET(request: NextRequest) {
   try {
-    for (const item of feedbackItems) {
-      try {
-        // Analyze and embed
-        const { analysis, embedding } = await analyzeAndEmbed(item.text);
-        
-        // Update feedback with analysis
-        await supabase
-          .from('feedback')
-          .update({
-            analysis,
-            sentiment: analysis.sentiment,
-            urgency: analysis.urgency,
-            business_impact: analysis.business_impact,
-          })
-          .eq('id', item.id);
-
-        // Insert embedding
-        await insertEmbedding(item.id, embedding);
-
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-      } catch (itemError) {
-        console.error(`Error processing feedback ${item.id}:`, itemError);
-        // Continue with next item
-      }
+    const { searchParams } = new URL(request.url)
+    const jobId = searchParams.get('jobId')
+    
+    if (!jobId) {
+      return NextResponse.json({ error: 'Job ID required' }, { status: 400 })
     }
 
-    // Track completion
-    await supabase
-      .from('events')
-      .insert({
-        owner_id: userId,
-        name: 'batch_analysis_complete',
-        data: { count: feedbackItems.length },
-      });
+    const job = jobs.get(jobId)
+    if (!job) {
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+    }
+
+    return NextResponse.json(job)
 
   } catch (error) {
-    console.error('Batch analysis error:', error);
+    console.error('Job status error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+async function processBatch(jobId: string, items: any[], userId: string) {
+  const job = jobs.get(jobId)
+  if (!job) return
+
+  try {
+    job.status = 'processing'
+    job.progress = 0
+    jobs.set(jobId, job)
+
+    const supabase = createClient()
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    
+    const batchSize = 5 // Process in small batches to avoid timeouts
+    const totalItems = items.length
+    let processed = 0
+
+    for (let i = 0; i < totalItems; i += batchSize) {
+      const batch = items.slice(i, i + batchSize)
+      
+      // Process batch
+      const batchPromises = batch.map(async (item) => {
+        try {
+          const analysis = await analyzeFeedback(item.text, openai)
+          
+          // Save analysis
+          const { error: insertError } = await supabase
+            .from('analyses')
+            .insert({
+              item_id: item.id,
+              sentiment_number: analysis.sentiment,
+              urgency_text: analysis.urgency,
+              theme_text: analysis.theme,
+              action_text: analysis.action
+            })
+
+          if (insertError) {
+            console.error('Failed to save analysis:', insertError)
+            return false
+          }
+
+          return true
+        } catch (error) {
+          console.error('Analysis failed for item:', item.id, error)
+          return false
+        }
+      })
+
+      await Promise.all(batchPromises)
+      processed += batch.length
+      
+      // Update progress
+      job.progress = Math.round((processed / totalItems) * 100)
+      jobs.set(jobId, job)
+
+      // Small delay between batches
+      await new Promise(resolve => setTimeout(resolve, 1000))
+    }
+
+    // Mark as completed
+    job.status = 'completed'
+    job.progress = 100
+    jobs.set(jobId, job)
+
+  } catch (error) {
+    console.error('Batch processing failed:', error)
+    job.status = 'failed'
+    job.error = error instanceof Error ? error.message : 'Unknown error'
+    jobs.set(jobId, job)
+  }
+}
+
+async function analyzeFeedback(text: string, openai: OpenAI) {
+  try {
+    const prompt = `Analyze this customer feedback and provide:
+1. Sentiment score (0-100, where 0 is very negative, 100 is very positive)
+2. Urgency level (low, medium, or high)
+3. Theme (up to 3 words describing the main topic)
+4. Action suggestion (one sentence recommendation)
+
+Feedback: "${text}"
+
+Respond in JSON format:
+{
+  "sentiment": 75,
+  "urgency": "medium",
+  "theme": "user interface",
+  "action": "Improve the navigation menu design based on user feedback."
+}`
+
+    const completion = await openai.chat.completions.create({
+      model: process.env.ANALYSIS_MODEL || 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      max_tokens: 200
+    })
+
+    const response = completion.choices[0]?.message?.content
+    if (!response) throw new Error('No response from OpenAI')
+
+    const analysis = JSON.parse(response)
+    
+    // Validate and normalize
+    return {
+      sentiment: Math.max(0, Math.min(100, parseInt(analysis.sentiment) || 50)),
+      urgency: ['low', 'medium', 'high'].includes(analysis.urgency) ? analysis.urgency : 'medium',
+      theme: (analysis.theme || 'general feedback').substring(0, 50),
+      action: (analysis.action || 'Review and consider this feedback.').substring(0, 200)
+    }
+
+  } catch (error) {
+    console.error('OpenAI analysis failed:', error)
+    
+    // Fallback to deterministic analysis
+    const words = text.toLowerCase().split(/\s+/)
+    const sentiment = words.some(w => ['good', 'great', 'love', 'awesome', 'excellent'].includes(w)) ? 75 :
+                     words.some(w => ['bad', 'terrible', 'hate', 'awful', 'horrible'].includes(w)) ? 25 : 50
+    
+    const urgency = words.some(w => ['urgent', 'critical', 'broken', 'crash', 'error'].includes(w)) ? 'high' :
+                   words.some(w => ['slow', 'issue', 'problem', 'bug'].includes(w)) ? 'medium' : 'low'
+    
+    const theme = words.slice(0, 3).join(' ').substring(0, 30) || 'general feedback'
+    const action = 'Review this feedback for potential improvements.'
+    
+    return { sentiment, urgency, theme, action }
   }
 } 

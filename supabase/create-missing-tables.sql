@@ -1,60 +1,82 @@
--- Create missing tables for SignalNote app
--- Run this in your Supabase SQL Editor
+-- Create missing tables for SignalNote v1
+-- This file adds the simplified schema needed for the core v1 features
 
--- Create waitlist table
-CREATE TABLE IF NOT EXISTS public.waitlist (
-    id bigserial PRIMARY KEY,
-    email text UNIQUE NOT NULL,
-    ref_code text,
-    created_at timestamptz DEFAULT now()
+-- Feedback items table (simplified from existing feedback table)
+create table if not exists public.feedback_items (
+  id bigserial primary key,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  text text not null,
+  source text,
+  created_at timestamptz default now()
 );
 
--- Enable RLS on waitlist table
-ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
-
--- Create RLS policy for waitlist (allow public inserts)
-CREATE POLICY "waitlist open insert" ON public.waitlist
-    FOR INSERT WITH CHECK (true);
-
--- Create RLS policy for waitlist (allow public reads)
-CREATE POLICY "waitlist open select" ON public.waitlist
-    FOR SELECT USING (true);
-
--- Create events table
-CREATE TABLE IF NOT EXISTS public.events (
-    id bigserial PRIMARY KEY,
-    owner_id uuid REFERENCES public.profiles(id),
-    name text NOT NULL,
-    data jsonb,
-    created_at timestamptz DEFAULT now()
+-- Analyses table for AI results
+create table if not exists public.analyses (
+  id bigserial primary key,
+  item_id bigint not null references public.feedback_items(id) on delete cascade,
+  sentiment_number integer not null check (sentiment_number >= 0 and sentiment_number <= 100),
+  urgency_text text not null check (urgency_text in ('low', 'medium', 'high')),
+  theme_text text not null,
+  action_text text not null,
+  created_at timestamptz default now()
 );
 
--- Enable RLS on events table
-ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
+-- Enable RLS on new tables
+alter table public.feedback_items enable row level security;
+alter table public.analyses enable row level security;
 
--- Create RLS policy for events (allow authenticated users to insert/read their own events)
-CREATE POLICY "events user insert" ON public.events
-    FOR INSERT WITH CHECK (auth.uid() = owner_id);
+-- RLS Policies for feedback_items
+create policy "users can view own feedback items" on public.feedback_items
+  for select using (auth.uid() = user_id);
 
-CREATE POLICY "events user select" ON public.events
-    FOR SELECT USING (auth.uid() = owner_id);
+create policy "users can insert own feedback items" on public.feedback_items
+  for insert with check (auth.uid() = user_id);
 
--- Grant necessary permissions
-GRANT ALL ON public.waitlist TO authenticated;
-GRANT ALL ON public.waitlist TO anon;
-GRANT ALL ON public.events TO authenticated;
+create policy "users can delete own feedback items" on public.feedback_items
+  for delete using (auth.uid() = user_id);
 
--- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_waitlist_email ON public.waitlist(email);
-CREATE INDEX IF NOT EXISTS idx_waitlist_ref_code ON public.waitlist(ref_code);
-CREATE INDEX IF NOT EXISTS idx_events_owner_id ON public.events(owner_id);
-CREATE INDEX IF NOT EXISTS idx_events_name ON public.events(name);
+-- RLS Policies for analyses
+create policy "users can view own analyses" on public.analyses
+  for select using (
+    exists (
+      select 1 from public.feedback_items 
+      where id = item_id and user_id = auth.uid()
+    )
+  );
 
--- Verify tables were created
-SELECT 
-    table_name,
-    table_type
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
-AND table_name IN ('waitlist', 'events')
-ORDER BY table_name; 
+create policy "users can insert own analyses" on public.analyses
+  for insert with check (
+    exists (
+      select 1 from public.feedback_items 
+      where id = item_id and user_id = auth.uid()
+    )
+  );
+
+-- Indexes for performance
+create index if not exists idx_feedback_items_user_id on public.feedback_items(user_id, created_at desc);
+create index if not exists idx_analyses_item_id on public.analyses(item_id);
+create index if not exists idx_analyses_urgency on public.analyses(urgency_text);
+create index if not exists idx_analyses_theme on public.analyses(theme_text);
+create index if not exists idx_analyses_sentiment on public.analyses(sentiment_number);
+
+-- Function to get themes summary
+create or replace function get_themes_summary(search_user_id uuid)
+returns table (
+  theme text,
+  count bigint,
+  example_quotes text[]
+)
+language plpgsql as $$
+begin
+  return query
+  select 
+    a.theme_text as theme,
+    count(*)::bigint as count,
+    array_agg(fi.text order by fi.created_at desc limit 3) as example_quotes
+  from public.analyses a
+  join public.feedback_items fi on a.item_id = fi.id
+  where fi.user_id = search_user_id
+  group by a.theme_text
+  order by count desc;
+end;
+$$; 

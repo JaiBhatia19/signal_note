@@ -82,26 +82,12 @@ export default function Nav() {
             
             {user && (
               <>
-                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                  Dashboard
+                <Link href="/app" className="text-gray-600 hover:text-gray-900">
+                  App
                 </Link>
-                <Link href="/feedback" className="text-gray-600 hover:text-gray-900">
-                  Feedback
+                <Link href="/demo" className="text-gray-600 hover:text-gray-900">
+                  Demo
                 </Link>
-                <Link href="/add-feedback" className="text-gray-600 hover:text-gray-900">
-                  Add Feedback
-                </Link>
-                <Link href="/search" className="text-gray-600 hover:text-gray-900">
-                  Search
-                </Link>
-                <Link href="/insights" className="text-gray-600 hover:text-gray-900">
-                  Insights
-                </Link>
-                {isPro && (
-                  <Link href="/analytics" className="text-gray-600 hover:text-gray-900">
-                    Analytics
-                  </Link>
-                )}
                 <Link href="/settings" className="text-gray-600 hover:text-gray-900">
                   Settings
                 </Link>

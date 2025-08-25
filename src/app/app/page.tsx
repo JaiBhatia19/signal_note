@@ -1,53 +1,91 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { createServer } from "@/lib/supabase";
-import Link from "next/link";
+'use client'
 
-export const runtime = "nodejs";
-export const dynamic = 'force-dynamic';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase'
+import { useEffect } from 'react'
+import UploadTab from './UploadTab'
+import ExploreTab from './ExploreTab'
+import ThemesTab from './ThemesTab'
 
-export default async function AppHome() {
-  const supabase = createServer();
-  const { data, error } = await supabase.auth.getUser();
-  
-  if (error || !data.user) redirect("/login");
-  
-  const handleSignOut = async () => {
-    'use server'
-    const supabase = createServer();
-    await supabase.auth.signOut();
-    redirect('/login');
+type TabType = 'upload' | 'explore' | 'themes'
+
+export default function AppPage() {
+  const [activeTab, setActiveTab] = useState<TabType>('upload')
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        router.push('/login')
+        return
+      }
+      setUser(session.user)
+      setLoading(false)
+    }
+    checkSession()
+  }, [router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
-  
+
+  if (!user) {
+    return null
+  }
+
+  const tabs = [
+    { id: 'upload', label: 'Upload', icon: '📁' },
+    { id: 'explore', label: 'Explore', icon: '🔍' },
+    { id: 'themes', label: 'Themes', icon: '🏷️' }
+  ]
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-md mx-auto text-center">
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to SignalNote</h1>
-          <p className="text-gray-600 mb-6">You are successfully signed in!</p>
-          <div className="bg-blue-50 p-4 rounded-md mb-6">
-            <p className="text-sm text-blue-800">
-              <strong>Email:</strong> {data.user.email}
-            </p>
-          </div>
-          <div className="space-y-3">
-            <Link 
-              href="/app/demo" 
-              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors w-full"
-            >
-              Try Demo
-            </Link>
-            <form action={handleSignOut}>
-              <button 
-                type="submit"
-                className="inline-block bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-colors w-full"
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">SignalNote v1</h1>
+          <p className="text-gray-600">Upload feedback, analyze with AI, and discover insights</p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="border-b border-gray-200 mb-8">
+          <nav className="-mb-px flex space-x-8">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabType)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
               >
-                Sign Out
+                <span className="mr-2">{tab.icon}</span>
+                {tab.label}
               </button>
-            </form>
-          </div>
+            ))}
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {activeTab === 'upload' && <UploadTab user={user} />}
+          {activeTab === 'explore' && <ExploreTab user={user} />}
+          {activeTab === 'themes' && <ThemesTab user={user} />}
         </div>
       </div>
     </div>
-  );
+  )
 } 
