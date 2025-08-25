@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { getSupabaseServer } from "@/lib/supabase-server"
 import OpenAI from 'openai'
 
+export const runtime = "nodejs";
+
 const CLUSTER_PROMPT = (items: string) => `
 You are a senior product manager analyzing customer feedback. Group similar feedback into 3-7 clusters and provide:
 

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUser } from '@/lib/guards';
 import { getUserClusters } from '@/lib/clustering';
 
+export const runtime = "nodejs";
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getUser();

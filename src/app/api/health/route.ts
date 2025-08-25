@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { env } from '@/lib/env';
 import OpenAI from 'openai';
 
+export const runtime = "nodejs";
+
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;

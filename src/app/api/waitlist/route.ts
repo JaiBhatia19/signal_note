@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase-service';
 
+export const runtime = "nodejs";
+
 // Temporary in-memory storage as fallback
 let tempWaitlist: { email: string; ref_code?: string; created_at: Date }[] = [];
 

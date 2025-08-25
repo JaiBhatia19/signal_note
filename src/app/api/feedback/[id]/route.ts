@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { getSupabaseServer } from "@/lib/supabase-server"
 import { generateEmbedding } from "@/lib/openai"
 
+export const runtime = "nodejs";
+
 export async function PUT(
   req: Request,
   { params }: { params: { id: string } }

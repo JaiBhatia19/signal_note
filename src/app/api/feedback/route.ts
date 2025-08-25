@@ -4,6 +4,8 @@ import { applyRateLimit, apiRateLimit } from '@/lib/rate-limit'
 import { env } from '@/lib/env'
 import OpenAI from 'openai'
 
+export const runtime = "nodejs";
+
 const openai = new OpenAI({
   apiKey: env.OPENAI_API_KEY,
 })

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUser } from '@/lib/guards';
 import { getReferralStats } from '@/lib/referrals';
 
+export const runtime = "nodejs";
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getUser();

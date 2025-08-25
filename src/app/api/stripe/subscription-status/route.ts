@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe"
 import { getSupabaseServer } from "@/lib/supabase-server"
 
+export const runtime = "nodejs";
+
 export async function GET() {
   try {
     const supabase = getSupabaseServer()

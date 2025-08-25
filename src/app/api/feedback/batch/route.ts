@@ -6,6 +6,8 @@ import { insertEmbedding } from '@/lib/search';
 import { getUser } from '@/lib/guards';
 import { parse } from 'csv-parse';
 
+export const runtime = "nodejs";
+
 const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
 interface CSVRow {

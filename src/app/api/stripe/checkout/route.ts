@@ -4,6 +4,8 @@ import Stripe from 'stripe';
 import { env } from '@/lib/env';
 import { createClient } from '@supabase/supabase-js';
 
+export const runtime = "nodejs";
+
 const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 });

@@ -1,396 +1,349 @@
-# **The Idea (from live gaps \+ forums pain points)**
+# SignalNote Implementation Guide
 
-🔍 Topic – "Internal User Feedback & Workflow Tissue Builder"  
-A lightweight, AI‑powered "feedback \+ workflow memory" tool for small teams who constantly lose user/customer/internal context across Slack, Notion, email, JIRA, etc.
+This guide contains the essential templates and specifications for implementing the SignalNote MVP.
 
-📌 Pain Point (from Reddit/HN in last 30 days):
+## 🤖 AI Analysis Prompt Templates
 
-* Startups and small teams complain about customer interviews going into the void. Founders collect tons of user feedback, but it gets messy—stuck across docs, Slack, Notion, and never drives product.  
-* Product managers: “I have 100s of user interview notes but no *signal extraction*. I can’t keep track of what was said, by whom, and whether we actually acted on it.”  
-* Engineers: “We often re‑ask customers the same questions because notes are lost. Feels amateur.”
+### 1. Feedback Analysis Prompt
 
-💡 Solution:  
-An AI‑powered *Feedback OS* that plugs into where founders already live (Slack, Notion, Google Docs, Linear/JIRA) → automatically ingests customer calls/feedback → makes it searchable, clusters insights (e.g. “5 users want SSO, 3 users hated onboarding step 2”), and tracks which product decisions addressed those requests.
+The main prompt used in `src/lib/openai.ts` for analyzing customer feedback:
 
-Target User:
+```typescript
+const ANALYSIS_PROMPT = `You are an expert product manager analyzing customer feedback. Analyze the following feedback and provide a structured response.
 
-* Early‑stage founders, product managers, customer success leads.  
-* They *will pay* $100/mo because it saves them time, pain, and keeps investors off their back (“show me your customer discovery record”).
+Feedback: "{text}"
 
-Why this works 🚀:
+Provide your analysis in the following JSON format:
+{
+  "sentiment": 0.0-1.0, // 0 = very negative, 1 = very positive
+  "urgency": 0.0-1.0,   // 0 = not urgent, 1 = extremely urgent
+  "business_impact": 1-5, // 1 = low impact, 5 = critical impact
+  "insights": [
+    "Key insight 1",
+    "Key insight 2", 
+    "Key insight 3"
+  ],
+  "summary": "Brief summary of the feedback and its implications"
+}
 
-* You don’t compete with Jira/Notion: you’re just the tissue \+ intelligence layer.  
-* Perfect YC wedge: every founder is told “talk to your users,” but nobody has a good “customer discovery brain.”
+Guidelines:
+- Sentiment: Consider tone, emotion, and overall satisfaction
+- Urgency: Assess how quickly this needs attention
+- Business Impact: Evaluate potential effect on business goals
+- Insights: Extract 1-3 actionable insights
+- Summary: 1-2 sentence summary for stakeholders
 
----
+Be objective and business-focused in your analysis.`;
+```
 
-## **📚 The Blueprint / Playbook (YC style)**
+### 2. Cluster Label Generation
 
-## **Phase 0 — Nail the Pain**
+Used in `src/lib/clustering.ts` for generating meaningful cluster labels:
 
-* Checkpoint: Do 15 founder/product manager interviews → ask how they track user feedback today.  
-* Goal → get 3 of them to *pre‑commit $50–100/mo* for your MVP.
+```typescript
+const CLUSTER_LABEL_PROMPT = `Analyze these feedback items and generate a concise, business-focused label:
 
----
+Feedback items:
+{feedbackItems}
 
-## **Phase 1 — MVP (Vibe Code Mode)**
+Generate a label that:
+- Is 2-4 words maximum
+- Describes the main theme or issue
+- Uses business terminology
+- Is actionable for product teams
 
-Scope:
+Examples: "Performance Issues", "Feature Requests", "UX Problems", "Mobile Crashes"
 
-* Input: Slack/Notion/Email/manual paste.  
-* Output: Searchable database of feedback \+ automatic clustering (similar feedback grouped).  
-* Bonus: Generate “company memory” style reports (“Top 5 pains this week”).
+Label:`;
+```
 
-Tools:
+### 3. Feature Request Generation
 
-* Cursor (AI pair‑programming) → actual codebase.  
-* GPT‑4 (prompt engineer \+ summarizer) → BRD writing, customer research automation, clustering prototype.  
-* Supabase (auth \+ db \+ storage).  
-* Next.js (frontend).  
-* LangChain/LlamaIndex or direct OpenAI API calls for summarization & embeddings → search.  
-* Railway/Render → cheap hosting.
+For converting clusters into actionable feature requests:
+
+```typescript
+const FEATURE_REQUEST_PROMPT = `Based on this cluster of feedback, generate a specific feature request:
+
+Cluster: {clusterLabel}
+Feedback count: {count}
+Average sentiment: {avgSentiment}
+Average urgency: {avgUrgency}
+
+Generate a feature request that:
+- Addresses the main pain point
+- Is specific and implementable
+- Includes business justification
+- Suggests priority level
 
-Checkpoint:
+Feature Request:`;
+```
 
-* 5 paying teams ($100/mo each). Don’t scale infra yet.
+### 4. Action Items Generation
 
----
+For creating actionable next steps from clusters:
 
-## **Phase 2 — First 100 Users ($10k MRR path)**
+```typescript
+const ACTION_ITEMS_PROMPT = `Based on this feedback cluster, suggest 2-3 specific action items:
 
-* Add integrations: Zoom transcripts, Google Meet, Linear.  
-* Build *customer request tracking pipeline* → each feature request tagged → status visible (open / shipped / rejected).  
-* Add Slack bot (direct command: “what has 5+ customer requests right now?”).
+Cluster: {clusterLabel}
+Feedback: {feedbackItems}
 
-Community Strategy:
+Generate action items that are:
+- Specific and measurable
+- Prioritized by impact
+- Assignable to teams
+- Time-bound where possible
 
-* Cold email/DM YC/OnDeck/Indie founders.  
-* Drop into Twitter/X startup convos (“how do you track feedback?”).  
-* Offer free migration for their messy Notion docs in exchange for being case study users.
+Action Items:`;
+```
 
-Checkpoint: 100 paying teams at $100/mo \= $10k MRR.
+## 📊 CSV Upload Specification
 
----
-
-## **Phase 3 — Growth & Network Effects**
-
-* Add multi‑tenant dashboard for investors/accelerators: “portfolio company user insights across startups.” (VCs pay for this).  
-* Viral loop: when a customer success manager invites product/engineering into the system.
-
-Checkpoint: $50–100k MRR → consider seed round if scale ambition.
-
----
-
-## **🧩 Tech/Execution Stack Cheat‑Sheet for Solo Founder**
-
-* ChatGPT:  
-  * BRD (business requirements doc), customer call analysis, UX copy, clustering experiments.  
-* Cursor: Core coding (Next.js \+ Supabase \+ API wiring).  
-* Supabase: Auth, DB, storage for transcripts/feedback.  
-* Postgres \+ pgvector: Store embeddings for feedback search.  
-* OpenAI Embeddings \+ GPT-4-turbo: Summaries, clustering, insights extraction.  
-* Vercel/Render: Deploy frontend/backend quickly.  
-* Zapier/n8n/Typefully: Growth hacks \+ distribution automation.
-
----
-
-## **🚀 The YC Execution Mindset**
-
-* Don’t build for months. Build something janky that ingests feedback → search page → clusters. Show to your first 3 users this week.  
-* Charge from day 1\. $100/mo validates serious need.  
-* Talk to every single customer weekly. Make this your unfair advantage.  
-* Retention \> Growth. The moment your 10 users say “this saves me from drowning in notes,” you’re onto something.  
-* Your angle vs Notion/Airtable? You are *opinionated*, designed for customer discovery and product signal—not generic notes.
-
-# **Vision & Milestones**
-
-## **Vision:** 
-
-Build the “Customer Memory OS” for startups. A system that never forgets what users say, clusters feedback into signal, and connects to product decisions.
-
-Mission: Help founders go from messy customer notes → clear product roadmap supported by evidence.
-
-North Star Metric: \# of product decisions informed by real customer signals in the platform.
-
-## **Milestones:**
-
-- [ ]  15 founder interviews.  
-- [ ]  3 payers on MVP ($100/mo).  
-- [ ]  10 payers with integrations (Slack/Zoom).  
-- [ ]  100 payers ($10k MRR).  
-- [ ]  Expand to accelerators/VC dashboards.
-
-# **MVP Product Spec (Mock‑up for Cursor Build)**
-
-## **Core Concept**
-
-A lightweight “Feedback OS” with:
-
-* Simple input (paste in Zoom/Slack/Notion notes → MVP can just be a text input box).  
-* Smart searchable database (embeddings → semantic search).  
-* Automatic clustering of similar feedback (group “5 people mention onboarding UX”).  
-* Insights dashboard (Top 5 pains this week).
-
----
-
-## **User Journey (V1)**
-
-1. Login / Signup – simple email/password (Supabase auth).  
-2. Paste Feedback Flow  
-   * User pastes transcript/snippet → press “Add Feedback.”  
-   * Text automatically stored in DB, embeddings created, metadata tagged with user/team.  
-3. Search Screen  
-   * Search bar → type “onboarding” → shows relevant feedback snippets semantically.  
-   * Each snippet shows source \+ timestamp.  
-4. Clustering / Insights Screen  
-   * AI groups feedback into clusters (like topics).  
-   * Shows “Pain Point \+ \# mentions.”  
-   * Example: “Onboarding step 2 confusing (5 mentions).”  
-5. Dashboard  
-   * Shows key metrics:  
-     * feedback entries added  
-     * Top 3 recurring pain points this week  
-     * Feature request leaderboard
-
----
-
-## **V1 Screen Mock (Textual Blueprint)**
-
-* Screen 1: Login  
-  * Simple logo \+ email/password ➝ Supabase handles session.  
-* Screen 2: “Add Feedback”  
-  * Big box: “Paste user feedback or transcript here.”  
-  * \[Save Button\] → stores feedback, embedding created.  
-* Screen 3: “Search”  
-  * Search bar.  
-  * Results list: snippet \+ source \+ tags.  
-* Screen 4: “Insights”  
-  * Card view: Each card \= cluster.  
-  * Header \= pain point phrase (generated by GPT).  
-  * Badge \= “8 mentions.”  
-  * Button: Mark as “tracked” → moves into dashboard.  
-* Screen 5: “Dashboard”  
-  * Shows top pain points tracked.  
-  * Quick status toggle: “open / shipped / ignored.”
-
----
-
-## **Tech Spec (Simplified for Cursor \+ GPT)**
-
-* Frontend: Next.js \+ Tailwind (speed \+ nice UI).  
-* Auth/DB: Supabase.  
-* Storage: Supabase for feedback records.  
-* Search/Clusters: pgVector \+ OpenAI embeddings. Clustering \= call GPT with grouped feedback.  
-* Hosting: Vercel (frontend), Supabase handles backend, Render/Railway if needed.  
-* AI Calls: GPT-4o-mini for fast clustering \+ summaries.
-
----
-
-## **MVP Checklist (Weekend Build)**
-
-- [ ]  Supabase project setup (Auth, Feedback table, vector extension)  
-- [ ]  Next.js frontend with 3 screens (Add Feedback, Search, Insights)  
-- [ ]  Feedback storage \+ embeddings  
-- [ ]  Search implementation with pgVector  
-- [ ]  Insights clustering prompt (group by top themes)  
-- [ ]  Basic dashboard with 3 recurring pain points
-
-## **Templates:**
-
-## **1\. Supabase Schema Draft (SQL)**
-
-## \-- \-------------------------------
-
-\-- Supabase Schema for EchoOS MVP  
-\-- \-------------------------------
-
-\-- 1\. Users Table (Managed by Supabase auth, no need to create here)
-
-\-- 2\. Feedback Table  
-CREATE TABLE feedback (  
-  id UUID PRIMARY KEY DEFAULT gen\_random\_uuid(),  
-  user\_id UUID REFERENCES auth.users(id),  \-- Links feedback to signed-in user  
-  source TEXT,        \-- E.g., 'Slack', 'Zoom', 'Manual' input source of feedback  
-  content TEXT,       \-- Full raw text of the feedback  
-  created\_at TIMESTAMPTZ DEFAULT NOW()  \-- Timestamp when feedback was added  
-);
-
-\-- Add vector embedding column (for semantic search with pgvector)  
-ALTER TABLE feedback ADD COLUMN embedding vector(1536);
-
-\-- 3\. Feature Requests Table (Tracks aggregated feedback turned into product features)  
-CREATE TABLE feature\_requests (  
-  id UUID PRIMARY KEY DEFAULT gen\_random\_uuid(),  
-  title TEXT NOT NULL,                  \-- Brief descriptive title of feature request  
-  description TEXT,                    \-- Extended notes about feature request  
-  status TEXT DEFAULT 'open',          \-- 'open', 'in\_progress', 'shipped' states  
-  created\_at TIMESTAMPTZ DEFAULT NOW() \-- When feature request was created  
-);
-
-\-- 4\. Feedback to Feature Link (Many-to-many)  
-CREATE TABLE feedback\_feature\_link (  
-  feedback\_id UUID REFERENCES feedback(id) ON DELETE CASCADE,  
-  feature\_request\_id UUID REFERENCES feature\_requests(id) ON DELETE CASCADE,  
-  PRIMARY KEY (feedback\_id, feature\_request\_id)  
-);
-
-\-- Index on embedding vector for efficient similarity search  
-CREATE INDEX ON feedback USING ivfflat (embedding vector\_cosine\_ops) WITH (lists \= 100);
-
-## **2\. Sample Seed Data (SQL)**
-
-\-- Replace 'user-uuid-x' with actual user IDs after sign-up
-
-INSERT INTO feedback (user\_id, source, content) VALUES  
-('user-uuid-1', 'Slack', 'Customer mentioned onboarding flow is confusing.'),  
-('user-uuid-2', 'Zoom', 'Request for adding single sign-on support.'),  
-('user-uuid-3', 'Manual', 'Several users complained about dashboard taking too long to load.');
-
-INSERT INTO feature\_requests (title, description, status) VALUES  
-('Improve Onboarding Flow', 'Simplify onboarding process due to customer confusion.', 'open'),  
-('Add Single Sign-On (SSO)', 'Support Google and Microsoft login for easier access.', 'open');
-
-INSERT INTO feedback\_feature\_link (feedback\_id, feature\_request\_id) VALUES  
-((SELECT id FROM feedback WHERE content LIKE '%onboarding%'), (SELECT id FROM feature\_requests WHERE title LIKE '%Onboarding%')),  
-((SELECT id FROM feedback WHERE content LIKE '%single sign-on%'), (SELECT id FROM feature\_requests WHERE title LIKE '%SSO%'));
-
-## **3\. GPT Clustering Prompt Template**
-
-You are an AI assistant tasked with grouping similar user feedback into clusters by theme. 
-
-Here are feedback items:
-
-1\. "Customers find the onboarding process confusing and too long."  
-2\. "Many users want single sign-on for easier login."  
-3\. "Dashboard loading speed is slow and frustrating."  
-4\. "Onboarding screens have unclear instructions."  
-5\. "People requested support for login with Google."
-
-Group these feedbacks into 2–3 clusters with a short title and list the included feedback. Example:
-
-Cluster 1: Onboarding Issues  
- \- Customers find the onboarding process confusing and too long.  
- \- Onboarding screens have unclear instructions.
-
-Cluster 2: Authentication Requests  
- \- Many users want single sign-on for easier login.  
- \- People requested support for login with Google.
-
-Cluster 3: Performance  
- \- Dashboard loading speed is slow and frustrating.
-
-## **4\. Search Prompt Template for Semantic Search**
-
-You are a search assistant. Given user query: "{search\_query}" and feedback snippets, rank the most relevant feedback entries and provide a summary of the most critical points.
-
-Feedback snippets:  
-\- "{feedback\_1}"  
-\- "{feedback\_2}"  
-\- "{feedback\_3}"  
-...
-
-## **5\. UI Copy Snippets (Place under “Screen Copy” heading)**
-
-* Login Screen:  
-  * “Welcome back\! Please log in to continue.”  
-  * Button: “Log In”  
-  * Link: “Need an account? Sign up”  
-* Add Feedback Screen:  
-  * Header: “Add Customer Feedback”  
-  * Placeholder: “Paste Zoom transcript, Slack message, or notes here...”  
-  * Button: “Upload & Analyze”  
-* Search Screen:  
-  * Placeholder: “Search feedback for keywords or themes...”  
-  * No results: “No feedback matches your query yet.”  
-* Insights Screen:  
-  * Header: “Top Pain Points & Requests”  
-  * Button: “Mark as Tracked”  
-  * Empty state: “No clusters found. Add some feedback to get started.”  
-* Dashboard:  
-  * Header: “Feature Requests Tracker”  
-  * Status tags: “Open,” “In Progress,” “Shipped”
-
-# **Founder Execution Toolkit**
-
-## **Tools & Uses**
-
-* ChatGPT (GPT-4 Premium):  
-  * Write business requirement docs (BRD)  
-  * Draft customer interview scripts & analyze notes  
-  * Generate UX copy, email templates, and prompts  
-  * Clustering and summarization prompts for AI  
-* Cursor (Premium):  
-  * Pair-programming and vibe-coding UI \+ backend  
-  * Write SQL schemas, API routes, React components  
-  * Prompt injection with GPT for auto-code generation  
-* Supabase:  
-  * Authentication (email/password)  
-  * Postgres database with pgVector extension  
-  * Storage for transcripts and feedback data  
-* OpenAI API:  
-  * Generate embeddings for feedback search  
-  * Summarize user feedback into pain points  
-  * Cluster similar feedback entries  
-* Next.js \+ Tailwind CSS:  
-  * Responsive, modern frontend framework  
-  * Fast iteration and deployment via Vercel  
-* Vercel / Render / Railway:  
-  * Simple, scalable hosting for frontend & backend services  
-* Zapier / n8n:  
-  * Automate outreach, daily reports, integration triggers
-
----
-
-## **Workflow Cheat Sheet for Solo Founder**
-
-1. Plan: Use ChatGPT to quickly draft BRD, user stories, and experiment with AI prompts before coding.  
-2. Build: Use Cursor to code UI \+ backend, while leveraging GPT prompts to speed up routine tasks.  
-3. Test: Invite 3–5 friendly users to try MVP ASAP—use their feedback to iterate quickly.  
-4. Grow: Automate user outreach with Zapier/slack, bootstrapped initial 100 users on $100/mo.  
-5. Iterate: Talk to every user weekly, update roadmap with real data, prioritize retention.
-
-## **ChatGPT Internal Analysis Prompt (for user interviews)**
-
-Help me summarize the following interview notes. Extract key pain points, feature requests, and any actionable insights. Format in bullet points.
-
-Interview notes:    
-{raw\_notes}
-
-## **1\. Early User Outreach Cold Email Template**
-
-Subject: Quick Question for Founders About User Feedback
-
-Hi {Name},
-
-I’m building a tool called EchoOS that helps founders like you capture and organize user feedback, so no great insights get lost in Slack, Notion, or Google Docs.
-
-Would you be open to a quick 10-minute call this week? I’d love to learn how you track your customer feedback today and see if this could save you time.
-
-Thanks\!    
+### Required Columns
+
+The CSV upload feature expects these exact column headers:
+
+```csv
+source,user_segment,product_area,text,created_at
+```
+
+### Column Definitions
+
+| Column | Type | Required | Description | Examples |
+|--------|------|----------|-------------|----------|
+| `source` | string | Yes | Where feedback came from | `email`, `in-app`, `support`, `feedback_form`, `twitter`, `zoom`, `slack` |
+| `user_segment` | string | Yes | Customer segment | `free`, `pro`, `enterprise`, `startup`, `enterprise` |
+| `product_area` | string | Yes | Product feature area | `dashboard`, `search`, `mobile`, `reporting`, `ui`, `api`, `integrations` |
+| `text` | string | Yes | The feedback content | Any text describing the feedback |
+| `created_at` | string | Yes | When feedback was received | `2024-01-15T10:30:00Z` or `2024-01-15` |
+
+### CSV Format Requirements
+
+- **Encoding**: UTF-8
+- **Delimiter**: Comma (,)
+- **Quote Character**: Double quotes (")
+- **Date Format**: ISO 8601 preferred, but flexible
+- **File Size**: Maximum 10MB
+- **Row Limit**: Maximum 1000 rows per upload
+
+### Sample CSV File
+
+```csv
+source,user_segment,product_area,text,created_at
+email,enterprise,dashboard,"The dashboard is too slow when loading large datasets",2024-01-15T10:30:00Z
+in-app,pro,search,"Love the new search feature! It finds exactly what I need",2024-01-15T11:15:00Z
+support,free,mobile,"App crashes when uploading files larger than 10MB",2024-01-15T14:20:00Z
+feedback_form,enterprise,reporting,"Need Excel export functionality",2024-01-15T16:45:00Z
+twitter,pro,ui,"Please add dark mode theme",2024-01-15T18:30:00Z
+```
+
+### Validation Rules
+
+```typescript
+// Validation logic from src/app/api/feedback/batch/route.ts
+const validateCSV = (records: any[]) => {
+  const requiredColumns = ['source', 'user_segment', 'product_area', 'text', 'created_at'];
+  
+  // Check required columns exist
+  const headers = Object.keys(records[0] || {});
+  const missingColumns = requiredColumns.filter(col => !headers.includes(col));
+  
+  if (missingColumns.length > 0) {
+    throw new Error(`Missing required columns: ${missingColumns.join(', ')}`);
+  }
+  
+  // Validate each row
+  records.forEach((record, index) => {
+    if (!record.text || record.text.trim().length === 0) {
+      throw new Error(`Row ${index + 1}: text is required`);
+    }
+    
+    if (!record.source || !record.user_segment || !record.product_area) {
+      throw new Error(`Row ${index + 1}: source, user_segment, and product_area are required`);
+    }
+  });
+};
+```
+
+## 📧 Referral Email Copy
+
+### 1. Referral Invitation Email
+
+**Subject**: `{Friend's Name} thinks you'd love SignalNote`
+
+**Body**:
+```
+Hi {Friend's Name},
+
+I've been using SignalNote to analyze customer feedback and it's been a game-changer for our product decisions. The AI-powered insights have helped us identify critical issues and prioritize features that actually matter to our users.
+
+I thought you might find it valuable too, especially since you're also focused on building products users love.
+
+Here's your personal invite link:
+{ReferralLink}
+
+What SignalNote does:
+• Analyzes customer feedback with AI (sentiment, urgency, business impact)
+• Groups similar feedback into actionable clusters
+• Provides semantic search across all feedback
+• Generates strategic insights and feature recommendations
+
+It's perfect for product managers, customer success teams, and anyone who wants to make data-driven decisions from customer feedback.
+
+Let me know if you have any questions!
+
+Best,
 {Your Name}
 
-## **2\. Follow-up Email Template**
+P.S. If you sign up through my link, we both get some extra features unlocked. Win-win! 🚀
+```
 
-Subject: Following up — user feedback tool for founders
+### 2. Referral Success Email
 
-Hey {Name},
+**Subject**: `{Friend's Name} joined SignalNote! 🎉`
 
-Just checking in to see if you had a chance to think about chatting this week. I’m excited to share a quick prototype that could make your user research way easier.
+**Body**:
+```
+Hi {Your Name},
 
-Let me know a time that works\!
+Great news! {Friend's Name} just joined SignalNote using your referral link.
 
-Cheers,    
-{Your Name}
+You now have:
+✅ 1 successful referral
+✅ Unlocked beta features
+✅ Early access to new capabilities
 
-## **4\. Retention Check-in Template (via Slack, Email, or DM)**
+Keep sharing SignalNote with your network - every referral helps us both!
 
-Hey {Name},    
-How’s your experience with EchoOS so far?    
-Are you seeing easier ways to spot key customer pain points? Any features you’d want next?    
-Happy to hop on a quick call to hear your feedback\!
+Your current stats:
+• Total referrals: {TotalReferrals}
+• Successful conversions: {SuccessfulReferrals}
+• Conversion rate: {ConversionRate}%
 
-## **5\. LinkedIn / Twitter Post to Attract Founders**
+Thanks for helping grow the SignalNote community!
 
-Founders: Are you drowning in customer feedback notes scattered across Slack, Zoom, and Notion?    
-EchoOS is a lightweight AI tool that turns feedback chaos into clear signals for your product roadmap.    
-Looking for early adopters to test the MVP. DM me if interested 👇  
+Best,
+The SignalNote Team
+```
+
+### 3. Referral Reminder Email
+
+**Subject**: `Don't forget your SignalNote referral bonus!`
+
+**Body**:
+```
+Hi {Your Name},
+
+You're just {ReferralsNeeded} referral(s) away from unlocking premium features on SignalNote!
+
+Current progress:
+🔄 Referrals sent: {TotalReferrals}
+✅ Successful conversions: {SuccessfulReferrals}
+🎯 Goal: {GoalReferrals} referrals
+
+Share your link with colleagues who might benefit from better customer feedback analysis:
+
+{ReferralLink}
+
+Quick reminder of what they get:
+• AI-powered feedback analysis
+• Strategic insights and clustering
+• Semantic search capabilities
+• Professional dashboard
+
+And what you get:
+• Unlock beta features
+• Early access to new capabilities
+• Premium support
+
+Happy referring!
+The SignalNote Team
+```
+
+### 4. Referral Tips Email
+
+**Subject**: `Pro tips for more successful referrals`
+
+**Body**:
+```
+Hi {Your Name},
+
+Want to increase your referral success rate? Here are some proven strategies:
+
+🎯 **Target the Right People**
+• Product managers and PMs
+• Customer success teams
+• UX researchers
+• Startup founders
+• Anyone dealing with customer feedback
+
+💬 **Personalize Your Message**
+• Mention specific benefits for their role
+• Share a quick win you've had
+• Offer to walk them through it
+
+📱 **Use Multiple Channels**
+• LinkedIn messages
+• Slack/Discord communities
+• Product management forums
+• Industry meetups
+• Email newsletters
+
+🚀 **Make It Easy**
+• Send your referral link directly
+• Offer to schedule a quick demo
+• Share screenshots of insights
+• Provide context about your use case
+
+Your current stats:
+• Referrals: {TotalReferrals}
+• Success rate: {ConversionRate}%
+• Rank: {Rank} out of {TotalUsers} users
+
+Keep up the great work!
+The SignalNote Team
+```
+
+## 🔧 Implementation Notes
+
+### Email Templates
+
+1. **Replace Variables**: All `{VariableName}` placeholders should be replaced with actual values
+2. **Personalization**: Use the referrer's name and company for better engagement
+3. **Branding**: Maintain consistent tone and style with your app
+4. **Testing**: A/B test subject lines and content for optimal performance
+
+### CSV Processing
+
+1. **Error Handling**: Provide clear error messages for validation failures
+2. **Progress Feedback**: Show upload progress and row processing status
+3. **Data Cleaning**: Handle common CSV formatting issues (extra spaces, quotes, etc.)
+4. **Batch Limits**: Enforce reasonable limits to prevent abuse
+
+### Referral System
+
+1. **Cookie Tracking**: Use secure, HTTP-only cookies for referral tracking
+2. **Fraud Prevention**: Implement basic anti-fraud measures
+3. **Analytics**: Track referral funnel metrics for optimization
+4. **Incentives**: Consider tiered rewards for different referral milestones
+
+## 📈 Optimization Tips
+
+### AI Prompts
+- Test different prompt variations for better results
+- Monitor AI response quality and adjust prompts accordingly
+- Consider prompt versioning for A/B testing
+
+### CSV Upload
+- Provide clear examples and templates
+- Implement drag-and-drop for better UX
+- Add preview functionality before processing
+
+### Referral Emails
+- Test different send times and frequencies
+- Segment users by referral success rate
+- Implement automated follow-up sequences
+
+---
+
+**Remember**: These templates are starting points. Test, iterate, and optimize based on your users' actual behavior and feedback!  
