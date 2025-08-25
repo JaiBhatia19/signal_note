@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { env } from './env';
+import { PUBLIC_APP_URL, env } from './env';
 import { generateEmbedding } from './openai';
 
-const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY!);
 
 export interface SearchResult {
   id: number;

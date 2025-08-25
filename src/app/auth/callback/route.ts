@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { createRoute } from "@/lib/supabase";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -9,7 +9,7 @@ export async function GET(req: Request) {
   const code = searchParams.get("code");
   
   if (code) {
-    const supabase = createRoute();
+    const supabase = supabaseServer();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
