@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe"
 import { supabaseServer } from '@/lib/supabase/server';
+import { PUBLIC_APP_URL } from "@/lib/env";
 
 export const runtime = "nodejs";
 
@@ -34,8 +35,8 @@ export async function POST() {
           quantity: 1,
         }
       ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?success=1`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?canceled=1`,
+      success_url: `${PUBLIC_APP_URL}/settings?success=1`,
+      cancel_url: `${PUBLIC_APP_URL}/settings?canceled=1`,
       customer_email: user.email || undefined,
       metadata: {
         userId: user.id,

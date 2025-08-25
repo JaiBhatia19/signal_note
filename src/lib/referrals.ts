@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { env } from './env';
+import { PUBLIC_APP_URL, env } from './env';
 import { cookies } from 'next/headers';
 
-const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY!);
 
 export interface ReferralStats {
   total_referrals: number;
@@ -163,8 +163,7 @@ export async function completeReferral(
 
 // Get referral link for a user
 export function getReferralLink(refCode: string): string {
-  const baseUrl = env.NEXT_PUBLIC_APP_URL;
-  return `${baseUrl}/signup?ref=${refCode}`;
+  return `${PUBLIC_APP_URL}/signup?ref=${refCode}`;
 }
 
 // Send referral email (placeholder for future implementation)
